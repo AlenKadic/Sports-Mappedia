@@ -2,22 +2,29 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>My Mapbox Website</title>
+  <title>Sports Mappedia – Full Style with Streets</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <style> body, html, #map { margin:0; padding:0; height:100%; } </style>
+  <style>
+    body, html, #map {{
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }}
+  </style>
 </head>
 <body>
 <div id="map"></div>
 <script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
-  const map = new mapboxgl.Map({
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNsaWR0cTFrYjAxdmMzcG9xaDdpeTZwc3MifQ.t5_6Kkh1PbK0WWCqt_7t6Q';
+  const map = new mapboxgl.Map({{
     container: 'map',
-    style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf', // your custom style
-    center: [-97.0, 39.5], // adjust to your location
+    style: 'mapbox://styles/alenkadic/clw3tb7jj00if01qsbmi5ffej', // replace with working custom style when ready
+    center: [-98.5795, 39.8283],
     zoom: 4
-  });
+  }});
 </script>
 </body>
 </html>
