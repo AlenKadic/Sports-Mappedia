@@ -2,12 +2,15 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>My Mapbox Studio Map</title>
+  <title>My Mapbox Studio Map with Directions</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
   <!-- Add Mapbox Search JS -->
   <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
+  <!-- Add Mapbox Directions plugin CSS and JS -->
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -39,6 +42,14 @@
       zoom: 3
     });
 
+    // Add Directions control
+    map.addControl(
+      new MapboxDirections({
+        accessToken: mapboxAccessToken
+      }),
+      'top-left'
+    );
+
     // Create and configure the search box
     const searchBox = new mapboxsearch.MapboxSearchBox();
     searchBox.accessToken = mapboxAccessToken;
@@ -57,4 +68,5 @@
 </script>
 </body>
 </html>
+
       
