@@ -50,20 +50,20 @@
       'top-left'
     );
 
-    // Create and configure the search box
-    const searchBox = new mapboxsearch.MapboxSearchBox();
-    searchBox.accessToken = mapboxAccessToken;
-    searchBox.options = {
+    // Create and configure the geocoder
+    const geocoder = new mapboxsearch.MapboxGeocoder();
+    geocoder.accessToken = mapboxAccessToken;
+    geocoder.options = {
       // You can set options like language, country, types, etc.
       // types: 'address,poi',
       // proximity: [-103.213,39.176]
     };
-    searchBox.mapboxgl = mapboxgl;
-    searchBox.marker = true;
-    searchBox.bindMap(map);
+    geocoder.mapboxgl = mapboxgl;
+    geocoder.marker = true;
+    geocoder.bindMap(map);
 
-    // Add the search box to the DOM
-    document.getElementById('search-box-container').appendChild(searchBox);
+    // Add the geocoder to the DOM
+    document.getElementById('search-box-container').appendChild(geocoder);
   };
 </script>
 </body>
