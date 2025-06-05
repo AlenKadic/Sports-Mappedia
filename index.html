@@ -22,6 +22,12 @@
       margin-left: -25%;
       top: 10px;
     }
+  @media (max-width: 600px) {
+    #search-box-container {
+      width: 90%;
+      margin-left: -45%;
+    }
+  }
   </style>
 </head>
 <body>
@@ -42,12 +48,14 @@
       zoom: 3
     });
 
+map.addControl(new mapboxgl.NavigationControl());
+
     // Add Directions control
     map.addControl(
       new MapboxDirections({
         accessToken: mapboxAccessToken
       }),
-   'top-right'
+      'top-left'
     );
 
     // Create and configure the search box
@@ -68,5 +76,6 @@
 </script>
 </body>
 </html>
+
 
 
