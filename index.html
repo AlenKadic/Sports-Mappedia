@@ -42,6 +42,20 @@
     #search-box-container {
       width: 90%;
       margin-left: -45%;
+      top: 10px;
+    }
+
+    #toggle-directions {
+      top: auto;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      padding: 10px 16px;
+    }
+
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 10px !important; /* Reset margin so Directions UI isn't pushed far down */
     }
   }
 </style>
