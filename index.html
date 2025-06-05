@@ -6,76 +6,90 @@
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
-  <!-- Add Mapbox Search JS -->
   <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
-  <!-- Add Mapbox Directions plugin CSS and JS -->
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
     #search-box-container {
       position: absolute;
-      z-index: 1;
+      z-index: 2;
       width: 50%;
       left: 50%;
       margin-left: -25%;
       top: 10px;
     }
-  @media (max-width: 600px) {
-    #search-box-container {
-      width: 90%;
-      margin-left: -45%;
+    #toggle-directions {
+      position: absolute;
+      z-index: 2;
+      top: 60px;
+      left: 10px;
+      padding: 8px 12px;
+      background-color: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
     }
-  }
+    @media (max-width: 600px) {
+      #search-box-container {
+        width: 90%;
+        margin-left: -45%;
+      }
+    }
   </style>
 </head>
 <body>
 <div id="search-box-container"></div>
+<button id="toggle-directions">Show Directions</button>
 <div id="map"></div>
+
 <script>
-  // Wait for the Mapbox Search JS script to load
   const script = document.getElementById('search-js');
   script.onload = function () {
     const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
-    // Initialize the map
     mapboxgl.accessToken = mapboxAccessToken;
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
-      center: [-103.213,39.176],
+      center: [-103.213, 39.176],
       zoom: 3
     });
 
-map.addControl(new mapboxgl.NavigationControl());
+    map.addControl(new mapboxgl.NavigationControl());
 
-    // Add Directions control
-    map.addControl(
-      new MapboxDirections({
-        accessToken: mapboxAccessToken
-      }),
-      'top-left'
-    );
+    const directions = new MapboxDirections({
+      accessToken: mapboxAccessToken
+    });
 
-    // Create and configure the search box
+    let directionsVisible = false;
+
+    document.getElementById('toggle-directions').addEventListener('click', function () {
+      if (!directionsVisible) {
+        map.addControl(directions, 'top-left');
+        this.textContent = 'Hide Directions';
+      } else {
+        map.removeControl(directions);
+        this.textContent = 'Show Directions';
+      }
+      directionsVisible = !directionsVisible;
+    });
+
     const searchBox = new mapboxsearch.MapboxSearchBox();
     searchBox.accessToken = mapboxAccessToken;
     searchBox.options = {
-      proximity: [-103.213,39.176]
-      // You can set options like language, country, types, etc.
-      // types: 'address,poi',
-      // proximity: [-103.213,39.176]
+      proximity: [-103.213, 39.176]
     };
     searchBox.mapboxgl = mapboxgl;
     searchBox.marker = true;
     searchBox.bindMap(map);
-    // Add the search box to the DOM
+
     document.getElementById('search-box-container').appendChild(searchBox);
   };
 </script>
 </body>
 </html>
+
 
 
 
