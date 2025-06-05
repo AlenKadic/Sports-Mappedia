@@ -67,22 +67,24 @@ map.addControl(new mapboxgl.NavigationControl());
     );
 
     // Create and configure the search box
-    const searchBox = new mapboxsearch.MapboxSearchBox();
-    searchBox.accessToken = mapboxAccessToken;
-    searchBox.options = {
-placeholder: 'Let’s get the ball rolling...',
-types: 'address,poi',
-proximity: [-103.213,39.176]
+const searchBox = new mapboxsearch.MapboxSearchBox();
+searchBox.accessToken = mapboxAccessToken;
+searchBox.options = {
+  types: 'address,poi',
+  proximity: [-103.213, 39.176]
+};    
       // You can set options like language, country, types, etc.
       // types: 'address,poi',
       // proximity: [-103.213,39.176]
-    };
+   
     searchBox.mapboxgl = mapboxgl;
     searchBox.marker = true;
     searchBox.bindMap(map);
 
     // Add the search box to the DOM
-document.getElementById('search-box-container').appendChild(searchBox.getElement());
+const searchBoxElement = searchBox.getElement();
+searchBoxElement.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
+document.getElementById('search-box-container').appendChild(searchBoxElement);
   };
 </script>
 </body>
