@@ -68,17 +68,16 @@ map.addControl(new mapboxgl.NavigationControl());
       // types: 'address,poi',
       // proximity: [-103.213,39.176]
     };
-    document.getElementById('search-box-container').appendChild(searchBox);
     searchBox.mapboxgl = mapboxgl;
     searchBox.marker = true;
     searchBox.bindMap(map);
-
     // Add the search box to the DOM
     document.getElementById('search-box-container').appendChild(searchBox);
   };
 </script>
 </body>
 </html>
+
 
 
 
