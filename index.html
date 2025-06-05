@@ -22,7 +22,7 @@
     }
     #toggle-directions {
       position: absolute;
-      z-index: 2;
+      z-index: 3;
       top: 60px;
       left: 10px;
       padding: 8px 12px;
@@ -58,37 +58,37 @@
 
     map.addControl(new mapboxgl.NavigationControl());
 
-    const directions = new MapboxDirections({
-      accessToken: mapboxAccessToken
-    });
-
+    let directionsControl = null;
     let directionsVisible = false;
 
-    document.getElementById('toggle-directions').addEventListener('click', function () {
+    const toggleButton = document.getElementById('toggle-directions');
+    toggleButton.addEventListener('click', function () {
       if (!directionsVisible) {
-        map.addControl(directions, 'top-left');
-        this.textContent = 'Hide Directions';
+        directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+        map.addControl(directionsControl, 'top-left');
+        toggleButton.textContent = 'Hide Directions';
       } else {
-        map.removeControl(directions);
-        this.textContent = 'Show Directions';
+        if (directionsControl) {
+          map.removeControl(directionsControl);
+          directionsControl = null;
+        }
+        toggleButton.textContent = 'Show Directions';
       }
       directionsVisible = !directionsVisible;
     });
 
     const searchBox = new mapboxsearch.MapboxSearchBox();
     searchBox.accessToken = mapboxAccessToken;
-    searchBox.options = {
-      proximity: [-103.213, 39.176]
-    };
+    searchBox.options = { proximity: [-103.213, 39.176] };
     searchBox.mapboxgl = mapboxgl;
     searchBox.marker = true;
     searchBox.bindMap(map);
-
     document.getElementById('search-box-container').appendChild(searchBox);
   };
 </script>
 </body>
 </html>
+
 
 
 
