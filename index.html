@@ -62,6 +62,8 @@ map.addControl(new mapboxgl.NavigationControl());
     const searchBox = new mapboxsearch.MapboxSearchBox();
     searchBox.accessToken = mapboxAccessToken;
     searchBox.options = {
+      placeholder: 'Let’s get the ball rolling...', 
+      proximity: [-103.213,39.176]
       // You can set options like language, country, types, etc.
       // types: 'address,poi',
       // proximity: [-103.213,39.176]
@@ -76,11 +78,6 @@ map.addControl(new mapboxgl.NavigationControl());
 </script>
 </body>
 </html>
-
-
-
-
-
 
 
 
