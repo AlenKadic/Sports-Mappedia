@@ -31,12 +31,6 @@
   </style>
 </head>
 <body>
-<noscript>
-  <div style="padding: 1rem; background: #fff3cd; color: #856404; text-align: center;">
-    This map requires JavaScript to be enabled in your browser.
-  </div>
-</noscript>
-
 <div id="search-box-container"></div>
 <div id="map"></div>
 <script>
@@ -51,9 +45,7 @@
       container: 'map',
       style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
       center: [-103.213,39.176],
-      zoom: 3,
-      maxZoom: 25,
-      minZoom: 1
+      zoom: 3
     });
 
 map.addControl(new mapboxgl.NavigationControl());
@@ -67,28 +59,25 @@ map.addControl(new mapboxgl.NavigationControl());
     );
 
     // Create and configure the search box
-const searchBox = new mapboxsearch.MapboxSearchBox();
-searchBox.accessToken = mapboxAccessToken;
-searchBox.options = {
-  types: 'address,poi',
-  proximity: [-103.213, 39.176]
-};    
+    const searchBox = new mapboxsearch.MapboxSearchBox();
+    searchBox.accessToken = mapboxAccessToken;
+    searchBox.options = {
       // You can set options like language, country, types, etc.
       // types: 'address,poi',
       // proximity: [-103.213,39.176]
-   
+    };
     searchBox.mapboxgl = mapboxgl;
     searchBox.marker = true;
     searchBox.bindMap(map);
 
     // Add the search box to the DOM
-const searchBoxElement = searchBox.getElement();
-searchBoxElement.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
- document.getElementById('search-box-container').appendChild(searchBox);
+    document.getElementById('search-box-container').appendChild(searchBox);
   };
 </script>
 </body>
 </html>
+
+
 
 
 
