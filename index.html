@@ -9,109 +9,157 @@
   <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-<style>
-  body { margin: 0; padding: 0; }
-  #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-  #search-box-container {
-    position: absolute;
-    z-index: 2;
-    width: 50%;
-    left: 50%;
-    margin-left: -25%;
-    top: 10px;
-  }
-
-  #toggle-directions {
-    position: absolute;
-    z-index: 10;
-    top: 10px;
-    left: 10px;
-    padding: 8px 12px;
-    background-color: white;
-    border: 1px solid #ccc;
-    cursor: pointer;
-  }
-
-  /* Stack the Directions UI below the button */
-  .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
-    margin-top: 60px !important;
-  }
-
-  @media (max-width: 600px) {
     #search-box-container {
-      width: 80%;
-      margin-left: -45%;
+      position: absolute;
+      z-index: 2;
+      width: 50%;
+      left: 50%;
+      margin-left: -25%;
       top: 10px;
     }
 
+    #toggle-directions, #geolocate-button {
+      position: absolute;
+      z-index: 10;
+      padding: 8px 12px;
+      background-color: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
     #toggle-directions {
-      top: auto;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 16px;
-      padding: 10px 16px;
+      top: 10px;
+      left: 10px;
     }
 
-   .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
-     margin-left: 20px !important;
-     margin-top: 10px !important;
+    #geolocate-button {
+      top: 50px;
+      left: 10px;
     }
-  }
-</style>
 
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 60px !important;
+    }
+
+    @media (max-width: 600px) {
+      #search-box-container {
+        width: 80%;
+        margin-left: -45%;
+        top: 10px;
+      }
+
+      #toggle-directions {
+        top: auto;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      #geolocate-button {
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
+        margin-left: 20px !important;
+        margin-top: 10px !important;
+      }
+    }
+  </style>
 </head>
 <body>
-<div id="search-box-container"></div>
-<button id="toggle-directions">Show Directions</button>
-<div id="map"></div>
+  <div id="search-box-container"></div>
+  <button id="toggle-directions">Show Directions</button>
+  <button id="geolocate-button">📍 Locate Me</button>
+  <div id="map"></div>
 
-<script>
-  const script = document.getElementById('search-js');
-  script.onload = function () {
-    const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
+  <script>
+    const script = document.getElementById('search-js');
+    script.onload = function () {
+      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
-    mapboxgl.accessToken = mapboxAccessToken;
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
-      center: [-103.213, 39.176],
-      zoom: 3
-    });
+      mapboxgl.accessToken = mapboxAccessToken;
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
+        center: [-103.213, 39.176],
+        zoom: 3
+      });
 
-    map.addControl(new mapboxgl.NavigationControl());
+      map.addControl(new mapboxgl.NavigationControl());
 
-    let directionsControl = null;
-    let directionsVisible = false;
+      let directionsControl = null;
+      let directionsVisible = false;
 
-    const toggleButton = document.getElementById('toggle-directions');
-    toggleButton.addEventListener('click', function () {
-      if (!directionsVisible) {
-        directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
-        map.addControl(directionsControl, 'top-left');
-        toggleButton.textContent = 'Hide Directions';
-      } else {
-        if (directionsControl) {
-          map.removeControl(directionsControl);
-          directionsControl = null;
+      document.getElementById('toggle-directions').addEventListener('click', function () {
+        if (!directionsVisible) {
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          map.addControl(directionsControl, 'top-left');
+          this.textContent = 'Hide Directions';
+        } else {
+          if (directionsControl) {
+            map.removeControl(directionsControl);
+            directionsControl = null;
+          }
+          this.textContent = 'Show Directions';
         }
-        toggleButton.textContent = 'Show Directions';
-      }
-      directionsVisible = !directionsVisible;
-    });
+        directionsVisible = !directionsVisible;
+      });
 
-    const searchBox = new mapboxsearch.MapboxSearchBox();
-    searchBox.accessToken = mapboxAccessToken;
-    searchBox.options = { proximity: [-103.213, 39.176] };
-    searchBox.mapboxgl = mapboxgl;
-    searchBox.marker = true;
-    searchBox.bindMap(map);
-    document.getElementById('search-box-container').appendChild(searchBox);
-  };
-</script>
+      document.getElementById('geolocate-button').addEventListener('click', function () {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const userLng = position.coords.longitude;
+              const userLat = position.coords.latitude;
+
+              map.flyTo({
+                center: [userLng, userLat],
+                zoom: 13,
+                essential: true
+              });
+
+              new mapboxgl.Marker({ color: '#007cbf' })
+                .setLngLat([userLng, userLat])
+                .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+                .addTo(map);
+            },
+            function (error) {
+              alert('Geolocation failed or was denied.');
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        } else {
+          alert("Your browser doesn't support geolocation.");
+        }
+      });
+
+      const searchBox = new mapboxsearch.MapboxSearchBox();
+      searchBox.accessToken = mapboxAccessToken;
+      searchBox.options = { proximity: [-103.213, 39.176] };
+      searchBox.mapboxgl = mapboxgl;
+      searchBox.marker = true;
+      searchBox.bindMap(map);
+      document.getElementById('search-box-container').appendChild(searchBox);
+    };
+  </script>
 </body>
 </html>
+
 
 
 
