@@ -148,6 +148,42 @@
         }
       });
 
+document.getElementById('geolocate-button').addEventListener('click', function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const userLng = position.coords.longitude;
+        const userLat = position.coords.latitude;
+
+        map.flyTo({
+          center: [userLng, userLat],
+          zoom: 13,
+          essential: true
+        });
+
+        new mapboxgl.Marker({ color: '#007cbf' })
+          .setLngLat([userLng, userLat])
+          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+          .addTo(map);
+
+        if (directionsControl) {
+          directionsControl.setOrigin([userLng, userLat]);
+        }
+      },
+      function (error) {
+        alert('Geolocation failed or was denied.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert("Your browser doesn't support geolocation.");
+  }
+});
+
       const searchBox = new mapboxsearch.MapboxSearchBox();
       searchBox.accessToken = mapboxAccessToken;
       searchBox.options = { proximity: [-103.213, 39.176] };
@@ -159,9 +195,6 @@
   </script>
 </body>
 </html>
-
-
-
 
 
 
