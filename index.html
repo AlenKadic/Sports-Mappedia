@@ -114,6 +114,16 @@
           interactive: true
         });
           map.addControl(directionsControl, 'top-left');
+         
+          let waypointIndex = 1;
+
+          map.on('click', function (e) {
+            if (directionsControl) {
+            directionsControl.addWaypoint(waypointIndex, [e.lngLat.lng, e.lngLat.lat]);
+            waypointIndex++;
+         }
+      });
+
           this.textContent = 'Hide Directions';
         } else {
           if (directionsControl) {
