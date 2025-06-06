@@ -103,7 +103,16 @@
 
       document.getElementById('toggle-directions').addEventListener('click', function () {
         if (!directionsVisible) {
-          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+         directionsControl = new MapboxDirections({
+          accessToken: mapboxAccessToken,
+          unit: 'metric',
+          profile: 'mapbox/driving',
+          controls: {
+            inputs: true,
+            instructions: true
+          },
+          interactive: true
+        });
           map.addControl(directionsControl, 'top-left');
           this.textContent = 'Hide Directions';
         } else {
