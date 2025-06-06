@@ -103,27 +103,8 @@
 
       document.getElementById('toggle-directions').addEventListener('click', function () {
         if (!directionsVisible) {
-         directionsControl = new MapboxDirections({
-          accessToken: mapboxAccessToken,
-          unit: 'metric',
-          profile: 'mapbox/driving',
-          controls: {
-            inputs: true,
-            instructions: true
-          },
-          interactive: true
-        });
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
           map.addControl(directionsControl, 'top-left');
-         
-          let waypointIndex = 1;
-
-          map.on('click', function (e) {
-            if (directionsControl) {
-            directionsControl.addWaypoint(waypointIndex, [e.lngLat.lng, e.lngLat.lat]);
-            waypointIndex++;
-         }
-      });
-
           this.textContent = 'Hide Directions';
         } else {
           if (directionsControl) {
@@ -214,8 +195,4 @@ document.getElementById('geolocate-button').addEventListener('click', function (
   </script>
 </body>
 </html>
-
-
-
-
 
