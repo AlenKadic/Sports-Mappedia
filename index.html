@@ -98,6 +98,45 @@ This is my .html:
         zoom: 3
       });
 
+    map.on('load', function() {
+    const interactiveLayerIds = [
+      'Sports_Mappedia_-_WC2026-8y7hdh',
+      'Medium_Airports',
+      'Cities',
+      'Large_Airports',
+      'Team_Hotels',
+      'Team_Training_Facilities',
+      'Stadiums',
+      'Sports_Mappedia_-_WC2026_-_Ci-8chted',
+      'Sports_Mappedia_-_WC2026_-_Ci-clw3hx',
+      'Sports_Mappedia_-_WC2026_-_Ci-b2r5im',
+      'Sports_Mappedia_-_WC2026_-_Ci-bejloz'
+    ];
+
+    interactiveLayerIds.forEach(function(layerId) {
+      // Click interaction: show popup with all properties
+      map.on('click', layerId, function(e) {
+        if (!e.features || !e.features.length) return;
+        const feature = e.features[0];
+        const props = Object.entries(feature.properties)
+          .map(([k, v]) => `<strong>${k}</strong>: ${v}`)
+          .join('<br>');
+        new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML(props)
+          .addTo(map);
+      });
+
+    // Change cursor to pointer on hover
+      map.on('mouseenter', layerId, function() {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', layerId, function() {
+        map.getCanvas().style.cursor = '';
+      });
+    });
+  });
+      
       map.addControl(new mapboxgl.NavigationControl());
 
       let directionsControl = null;
