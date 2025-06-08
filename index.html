@@ -12,6 +12,7 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
     #search-box-container {
       position: absolute;
       z-index: 2;
@@ -20,6 +21,7 @@
       margin-left: -25%;
       top: 10px;
     }
+
     #toggle-directions, #geolocate-button {
       position: absolute;
       z-index: 10;
@@ -28,26 +30,50 @@
       border: 1px solid #ccc;
       cursor: pointer;
     }
-    #toggle-directions { top: 10px; left: 10px; }
-    #geolocate-button { top: 10px; left: 185px; }
+
+    #toggle-directions {
+      top: 10px;
+      left: 10px;
+    }
+
+    #geolocate-button {
+      top: 10px;
+      left: 185px;
+    }
+
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
       margin-top: 60px !important;
     }
+
     @media (max-width: 600px) {
       #search-box-container {
         width: 80%;
         margin-left: -45%;
         top: 10px;
       }
-      #toggle-directions, #geolocate-button {
+
+      #toggle-directions {
         top: auto;
+        bottom: 70px;
         left: 50%;
         transform: translateX(-50%);
         font-size: 16px;
         padding: 10px 16px;
       }
-      #toggle-directions { bottom: 70px; }
-      #geolocate-button { bottom: 20px; }
+
+      #geolocate-button {
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
+        margin-left: 20px !important;
+        margin-top: 10px !important;
+      }
     }
   </style>
 </head>
@@ -57,115 +83,116 @@
   <button id="geolocate-button">📍 Locate Me</button>
   <div id="map"></div>
 
-  <!-- ... HEAD stays the same ... -->
-<script>
-  const script = document.getElementById('search-js');
-  script.onload = function () {
-    const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
-    mapboxgl.accessToken = mapboxAccessToken;
+  <script>
+    const script = document.getElementById('search-js');
+    script.onload = function () {
+      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
-      center: [-118.248, 33.8703],
-      zoom: 10
-    });
-
-    map.addControl(new mapboxgl.NavigationControl());
-
-    map.on('load', function () {
-      // ✅ Add main tileset source
-      map.addSource('main-layer-src', {
-        type: 'vector',
-        url: 'mapbox://alenkadic.bbyn5xor'
+      mapboxgl.accessToken = mapboxAccessToken;
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
+        center: [-103.213, 39.176],
+        zoom: 3
       });
 
-      // === 5 layers from the tileset ===
-      map.addLayer({
-        id: 'cities-layer',
-        type: 'symbol',
-        source: 'main-layer-src',
-        'source-layer': 'Cities',
-        layout: {
-          'icon-image': 'city-15',
-          'icon-size': 1.2
+      map.addControl(new mapboxgl.NavigationControl());
+
+      let directionsControl = null;
+      let directionsVisible = false;
+
+      document.getElementById('toggle-directions').addEventListener('click', function () {
+        if (!directionsVisible) {
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          map.addControl(directionsControl, 'top-left');
+          this.textContent = 'Hide Directions';
+        } else {
+          if (directionsControl) {
+            map.removeControl(directionsControl);
+            directionsControl = null;
+          }
+          this.textContent = 'Show Directions';
+        }
+        directionsVisible = !directionsVisible;
+      });
+
+      document.getElementById('geolocate-button').addEventListener('click', function () {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const userLng = position.coords.longitude;
+              const userLat = position.coords.latitude;
+
+              map.flyTo({
+                center: [userLng, userLat],
+                zoom: 13,
+                essential: true
+              });
+
+              new mapboxgl.Marker({ color: '#007cbf' })
+                .setLngLat([userLng, userLat])
+                .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+                .addTo(map);
+            },
+            function (error) {
+              alert('Geolocation failed or was denied.');
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        } else {
+          alert("Your browser doesn't support geolocation.");
         }
       });
 
-      map.addLayer({
-        id: 'large-airports-layer',
-        type: 'symbol',
-        source: 'main-layer-src',
-        'source-layer': 'Large_Airports',
-        layout: {
-          'icon-image': 'airport-15',
-          'icon-size': 1.2
-        }
-      });
+document.getElementById('geolocate-button').addEventListener('click', function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const userLng = position.coords.longitude;
+        const userLat = position.coords.latitude;
 
-      map.addLayer({
-        id: 'medium-airports-layer',
-        type: 'symbol',
-        source: 'main-layer-src',
-        'source-layer': 'Medium_Airports',
-        layout: {
-          'icon-image': 'airport-15',
-          'icon-size': 1.1
-        }
-      });
-
-      map.addLayer({
-        id: 'stadiums-layer',
-        type: 'symbol',
-        source: 'main-layer-src',
-        'source-layer': 'Stadiums',
-        layout: {
-          'icon-image': 'soccer-15',
-          'icon-size': 1.3
-        }
-      });
-
-      map.addLayer({
-        id: 'hotels-layer',
-        type: 'symbol',
-        source: 'main-layer-src',
-        'source-layer': 'Team_Hotels',
-        layout: {
-          'icon-image': 'lodging-15',
-          'icon-size': 1.2
-        }
-      });
-
-      // 🖱️ Add click popups for all
-      const layers = ['cities-layer', 'large-airports-layer', 'medium-airports-layer', 'stadiums-layer', 'hotels-layer'];
-      layers.forEach(id => {
-        map.on('click', id, e => {
-          const props = e.features[0].properties;
-          new mapboxgl.Popup()
-            .setLngLat(e.lngLat)
-            .setHTML(`<strong>${id}</strong><br>${JSON.stringify(props, null, 2)}`)
-            .addTo(map);
+        map.flyTo({
+          center: [userLng, userLat],
+          zoom: 13,
+          essential: true
         });
-        map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', id, () => map.getCanvas().style.cursor = '');
-      });
-    });
 
-    // 🔍 Search Box
-    const searchBox = new mapboxsearch.MapboxSearchBox();
-    searchBox.accessToken = mapboxAccessToken;
-    searchBox.options = { proximity: [-118.248, 33.8703] };
-    searchBox.mapboxgl = mapboxgl;
-    searchBox.marker = true;
-    searchBox.bindMap(map);
-    const boxEl = searchBox.getElement();
-    boxEl.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
-    document.getElementById('search-box-container').appendChild(boxEl);
+        new mapboxgl.Marker({ color: '#007cbf' })
+          .setLngLat([userLng, userLat])
+          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+          .addTo(map);
 
-    // 📍 Geolocation + Direction setup remains unchanged...
-    // (your geolocation + direction toggle code continues here)
-  };
-</script>
+        if (directionsControl) {
+          directionsControl.setOrigin([userLng, userLat]);
+        }
+      },
+      function (error) {
+        alert('Geolocation failed or was denied.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert("Your browser doesn't support geolocation.");
+  }
+});
+
+      const searchBox = new mapboxsearch.MapboxSearchBox();
+      searchBox.accessToken = mapboxAccessToken;
+      searchBox.options = { proximity: [-103.213, 39.176] };
+      searchBox.mapboxgl = mapboxgl;
+      searchBox.marker = true;
+      searchBox.bindMap(map);
+      document.getElementById('search-box-container').appendChild(searchBox);
+    };
+  </script>
 </body>
 </html>
 
