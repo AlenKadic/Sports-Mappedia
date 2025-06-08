@@ -12,26 +12,68 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
     #search-box-container {
-      position: absolute; z-index: 2;
-      width: 50%; left: 50%; margin-left: -25%; top: 10px;
+      position: absolute;
+      z-index: 2;
+      width: 50%;
+      left: 50%;
+      margin-left: -25%;
+      top: 10px;
     }
+
     #toggle-directions, #geolocate-button {
-      position: absolute; z-index: 10;
-      padding: 8px 12px; background: white;
-      border: 1px solid #ccc; cursor: pointer;
+      position: absolute;
+      z-index: 10;
+      padding: 8px 12px;
+      background-color: white;
+      border: 1px solid #ccc;
+      cursor: pointer;
     }
-    #toggle-directions { top: 10px; left: 10px; }
-    #geolocate-button { top: 10px; left: 185px; }
-    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
+
+    #toggle-directions {
+      top: 10px;
+      left: 10px;
+    }
+
+    #geolocate-button {
+      top: 10px;
+      left: 185px;
+    }
+
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 60px !important;
+    }
+
     @media (max-width: 600px) {
-      #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
-      #toggle-directions, #geolocate-button {
-        font-size: 16px; padding: 10px 16px;
-        left: 50%; transform: translateX(-50%);
+      #search-box-container {
+        width: 80%;
+        margin-left: -45%;
+        top: 10px;
       }
-      #toggle-directions { bottom: 70px; top: auto; }
-      #geolocate-button { bottom: 20px; top: auto; }
+
+      #toggle-directions {
+        top: auto;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      #geolocate-button {
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
+        margin-left: 20px !important;
+        margin-top: 10px !important;
+      }
     }
   </style>
 </head>
@@ -44,74 +86,111 @@
   <script>
     const script = document.getElementById('search-js');
     script.onload = function () {
-      const mapboxToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
-      mapboxgl.accessToken = mapboxToken;
+      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
+      mapboxgl.accessToken = mapboxAccessToken;
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
         center: [-103.213, 39.176],
         zoom: 3
       });
+
       map.addControl(new mapboxgl.NavigationControl());
 
-      map.on('load', function () {
-        const layerIds = [
-          'Cities-layer', 'Large_Airports-layer', 'Medium_Airports-layer',
-          'Stadiums-layer', 'Team_Hotels-layer',
-          'Gate1-layer', 'Gate2-layer'
-        ];
+      let directionsControl = null;
+      let directionsVisible = false;
 
-        layerIds.forEach(id => {
-          map.on('click', id, e => {
-            if (!e.features || !e.features.length) return;
-            const props = e.features[0].properties;
-            new mapboxgl.Popup()
-              .setLngLat(e.lngLat)
-              .setHTML(Object.entries(props).map(p=>`<strong>${p[0]}</strong>: ${p[1]}`).join('<br>'))
-              .addTo(map);
-          });
-          map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
-          map.on('mouseleave', id, () => map.getCanvas().style.cursor = '');
+      document.getElementById('toggle-directions').addEventListener('click', function () {
+        if (!directionsVisible) {
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          map.addControl(directionsControl, 'top-left');
+          this.textContent = 'Hide Directions';
+        } else {
+          if (directionsControl) {
+            map.removeControl(directionsControl);
+            directionsControl = null;
+          }
+          this.textContent = 'Show Directions';
+        }
+        directionsVisible = !directionsVisible;
+      });
+
+      document.getElementById('geolocate-button').addEventListener('click', function () {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const userLng = position.coords.longitude;
+              const userLat = position.coords.latitude;
+
+              map.flyTo({
+                center: [userLng, userLat],
+                zoom: 13,
+                essential: true
+              });
+
+              new mapboxgl.Marker({ color: '#007cbf' })
+                .setLngLat([userLng, userLat])
+                .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+                .addTo(map);
+            },
+            function (error) {
+              alert('Geolocation failed or was denied.');
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        } else {
+          alert("Your browser doesn't support geolocation.");
+        }
+      });
+
+document.getElementById('geolocate-button').addEventListener('click', function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const userLng = position.coords.longitude;
+        const userLat = position.coords.latitude;
+
+        map.flyTo({
+          center: [userLng, userLat],
+          zoom: 13,
+          essential: true
         });
-      });
-      
-      // Geolocation
-      document.getElementById('geolocate-button').addEventListener('click', () => {
-        if (!navigator.geolocation) return alert("Geolocation not supported");
-        navigator.geolocation.getCurrentPosition(pos => {
-          const [lng, lat] = [pos.coords.longitude, pos.coords.latitude];
-          map.flyTo({ center: [lng, lat], zoom: 13 });
-          new mapboxgl.Marker().setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
-            .addTo(map);
-        }, () => alert('Geolocation failed or denied'));
-      });
 
-      // Search
+        new mapboxgl.Marker({ color: '#007cbf' })
+          .setLngLat([userLng, userLat])
+          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+          .addTo(map);
+
+        if (directionsControl) {
+          directionsControl.setOrigin([userLng, userLat]);
+        }
+      },
+      function (error) {
+        alert('Geolocation failed or was denied.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert("Your browser doesn't support geolocation.");
+  }
+});
+
       const searchBox = new mapboxsearch.MapboxSearchBox();
-      searchBox.accessToken = mapboxToken;
+      searchBox.accessToken = mapboxAccessToken;
       searchBox.options = { proximity: [-103.213, 39.176] };
       searchBox.mapboxgl = mapboxgl;
       searchBox.marker = true;
       searchBox.bindMap(map);
-      const sEl = searchBox.getElement();
-      sEl.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
-      document.getElementById('search-box-container').appendChild(sEl);
-
-      // Directions toggle
-      let directions = null, visible = false;
-      document.getElementById('toggle-directions').addEventListener('click', function () {
-        if (!visible) {
-          directions = new MapboxDirections({ accessToken: mapboxToken });
-          map.addControl(directions, 'top-left');
-          this.textContent = 'Hide Directions';
-        } else {
-          if (directions) map.removeControl(directions);
-          this.textContent = 'Show Directions';
-        }
-        visible = !visible;
-      });
+      document.getElementById('search-box-container').appendChild(searchBox);
     };
   </script>
 </body>
