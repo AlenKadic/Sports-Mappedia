@@ -1,3 +1,5 @@
+Lets start over again.
+This is my .html:
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,6 +14,7 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
     #search-box-container {
       position: absolute;
       z-index: 2;
@@ -20,6 +23,7 @@
       margin-left: -25%;
       top: 10px;
     }
+
     #toggle-directions, #geolocate-button {
       position: absolute;
       z-index: 10;
@@ -28,24 +32,50 @@
       border: 1px solid #ccc;
       cursor: pointer;
     }
-    #toggle-directions { top: 10px; left: 10px; }
-    #geolocate-button { top: 10px; left: 185px; }
-    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
+
+    #toggle-directions {
+      top: 10px;
+      left: 10px;
+    }
+
+    #geolocate-button {
+      top: 10px;
+      left: 185px;
+    }
+
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 60px !important;
+    }
+
     @media (max-width: 600px) {
       #search-box-container {
         width: 80%;
         margin-left: -45%;
         top: 10px;
       }
-      #toggle-directions, #geolocate-button {
+
+      #toggle-directions {
         top: auto;
+        bottom: 70px;
         left: 50%;
         transform: translateX(-50%);
         font-size: 16px;
         padding: 10px 16px;
       }
-      #toggle-directions { bottom: 70px; }
-      #geolocate-button { bottom: 20px; }
+
+      #geolocate-button {
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        padding: 10px 16px;
+      }
+
+      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
+        margin-left: 20px !important;
+        margin-top: 10px !important;
+      }
     }
   </style>
 </head>
@@ -59,8 +89,8 @@
     const script = document.getElementById('search-js');
     script.onload = function () {
       const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
-      mapboxgl.accessToken = mapboxAccessToken;
 
+      mapboxgl.accessToken = mapboxAccessToken;
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
@@ -70,127 +100,9 @@
 
       map.addControl(new mapboxgl.NavigationControl());
 
-      map.on('load', function () {
-        // ✅ Add all sources
-        map.addSource('main-tiles', { type: 'vector', url: 'mapbox://alenkadic.bbyn5xor' });
-        map.addSource('gate1', { type: 'vector', url: 'mapbox://alenkadic.009jgd23' });
-        map.addSource('gate2', { type: 'vector', url: 'mapbox://alenkadic.dalclp0o' });
-        map.addSource('parking1', { type: 'vector', url: 'mapbox://alenkadic.0ehplcqt' });
-        map.addSource('parking2', { type: 'vector', url: 'mapbox://alenkadic.6fkyiriz' });
-
-        // ✅ Layers from main tileset
-        const mainLayers = [
-          { id: 'Cities', icon: 'city-15' },
-          { id: 'Large_Airports', icon: 'airport-15' },
-          { id: 'Medium_Airports', icon: 'airport-15' },
-          { id: 'Stadiums', icon: 'soccer-15' },
-          { id: 'Team_Hotels', icon: 'lodging-15' }
-        ];
-
-        mainLayers.forEach(layer => {
-          map.addLayer({
-            id: layer.id + '-layer',
-            type: 'symbol',
-            source: 'main-tiles',
-            'source-layer': layer.id,
-            layout: {
-              'icon-image': layer.icon,
-              'icon-size': 1.1
-            }
-          });
-        });
-
-        // ✅ Individual tilesets
-        map.addLayer({
-          id: 'Gate1-layer',
-          type: 'symbol',
-          source: 'gate1',
-          'source-layer': 'Sports_Mappedia_-_WC2026_-_Ci-8chted',
-          layout: {
-            'icon-image': 'entrance-alt1-15',
-            'icon-size': 1.2
-          }
-        });
-
-        map.addLayer({
-          id: 'Gate2-layer',
-          type: 'symbol',
-          source: 'gate2',
-          'source-layer': 'Sports_Mappedia_-_WC2026_-_Ci-b2r5im',
-          layout: {
-            'icon-image': 'entrance-alt1-15',
-            'icon-size': 1.2
-          }
-        });
-
-        map.addLayer({
-          id: 'Parking1-layer',
-          type: 'fill',
-          source: 'parking1',
-          'source-layer': 'Sports_Mappedia_-_WC2026_-_Ci-bejloz',
-          paint: {
-            'fill-color': '#ff9800',
-            'fill-opacity': 0.5
-          }
-        });
-
-        map.addLayer({
-          id: 'Parking2-layer',
-          type: 'fill',
-          source: 'parking2',
-          'source-layer': 'Sports_Mappedia_-_WC2026_-_Ci-clw3hx',
-          paint: {
-            'fill-color': '#009688',
-            'fill-opacity': 0.5
-          }
-        });
-
-        // ✅ Click Popups
-        const clickableLayers = [
-          ...mainLayers.map(l => l.id + '-layer'),
-          'Gate1-layer', 'Gate2-layer'
-        ];
-
-        clickableLayers.forEach(id => {
-          map.on('click', id, e => {
-            const props = e.features[0].properties;
-            new mapboxgl.Popup()
-              .setLngLat(e.lngLat)
-              .setHTML(`<strong>${id}</strong><br>${JSON.stringify(props, null, 2)}`)
-              .addTo(map);
-          });
-          map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
-          map.on('mouseleave', id, () => map.getCanvas().style.cursor = '');
-        });
-      });
-
-      // 📍 Locate Me Button
-      document.getElementById('geolocate-button').addEventListener('click', function () {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function (position) {
-            const lng = position.coords.longitude;
-            const lat = position.coords.latitude;
-            map.flyTo({ center: [lng, lat], zoom: 13 });
-            new mapboxgl.Marker().setLngLat([lng, lat])
-              .setPopup(new mapboxgl.Popup().setText("You are here 📍")).addTo(map);
-          }, () => alert('Geolocation failed.'));
-        }
-      });
-
-      // 🔍 Search Box
-      const searchBox = new mapboxsearch.MapboxSearchBox();
-      searchBox.accessToken = mapboxAccessToken;
-      searchBox.options = { proximity: [-103.213, 39.176] };
-      searchBox.mapboxgl = mapboxgl;
-      searchBox.marker = true;
-      searchBox.bindMap(map);
-      const boxEl = searchBox.getElement();
-      boxEl.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
-      document.getElementById('search-box-container').appendChild(boxEl);
-
-      // 🚗 Directions Toggle
       let directionsControl = null;
       let directionsVisible = false;
+
       document.getElementById('toggle-directions').addEventListener('click', function () {
         if (!directionsVisible) {
           directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
@@ -205,7 +117,84 @@
         }
         directionsVisible = !directionsVisible;
       });
+
+      document.getElementById('geolocate-button').addEventListener('click', function () {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const userLng = position.coords.longitude;
+              const userLat = position.coords.latitude;
+
+              map.flyTo({
+                center: [userLng, userLat],
+                zoom: 13,
+                essential: true
+              });
+
+              new mapboxgl.Marker({ color: '#007cbf' })
+                .setLngLat([userLng, userLat])
+                .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+                .addTo(map);
+            },
+            function (error) {
+              alert('Geolocation failed or was denied.');
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        } else {
+          alert("Your browser doesn't support geolocation.");
+        }
+      });
+
+document.getElementById('geolocate-button').addEventListener('click', function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        const userLng = position.coords.longitude;
+        const userLat = position.coords.latitude;
+
+        map.flyTo({
+          center: [userLng, userLat],
+          zoom: 13,
+          essential: true
+        });
+
+        new mapboxgl.Marker({ color: '#007cbf' })
+          .setLngLat([userLng, userLat])
+          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+          .addTo(map);
+
+        if (directionsControl) {
+          directionsControl.setOrigin([userLng, userLat]);
+        }
+      },
+      function (error) {
+        alert('Geolocation failed or was denied.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  } else {
+    alert("Your browser doesn't support geolocation.");
+  }
+});
+
+      const searchBox = new mapboxsearch.MapboxSearchBox();
+      searchBox.accessToken = mapboxAccessToken;
+      searchBox.options = { proximity: [-103.213, 39.176] };
+      searchBox.mapboxgl = mapboxgl;
+      searchBox.marker = true;
+      searchBox.bindMap(map);
+      document.getElementById('search-box-container').appendChild(searchBox);
     };
   </script>
 </body>
 </html>
+
