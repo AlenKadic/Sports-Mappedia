@@ -12,7 +12,6 @@
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-
     #search-box-container {
       position: absolute;
       z-index: 2;
@@ -21,7 +20,6 @@
       margin-left: -25%;
       top: 10px;
     }
-
     #toggle-directions, #geolocate-button {
       position: absolute;
       z-index: 10;
@@ -30,50 +28,26 @@
       border: 1px solid #ccc;
       cursor: pointer;
     }
-
-    #toggle-directions {
-      top: 10px;
-      left: 10px;
-    }
-
-    #geolocate-button {
-      top: 10px;
-      left: 185px;
-    }
-
+    #toggle-directions { top: 10px; left: 10px; }
+    #geolocate-button { top: 10px; left: 185px; }
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
       margin-top: 60px !important;
     }
-
     @media (max-width: 600px) {
       #search-box-container {
         width: 80%;
         margin-left: -45%;
         top: 10px;
       }
-
-      #toggle-directions {
+      #toggle-directions, #geolocate-button {
         top: auto;
-        bottom: 70px;
         left: 50%;
         transform: translateX(-50%);
         font-size: 16px;
         padding: 10px 16px;
       }
-
-      #geolocate-button {
-        top: auto;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 16px;
-        padding: 10px 16px;
-      }
-
-      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
-        margin-left: 20px !important;
-        margin-top: 10px !important;
-      }
+      #toggle-directions { bottom: 70px; }
+      #geolocate-button { bottom: 20px; }
     }
   </style>
 </head>
@@ -87,8 +61,8 @@
     const script = document.getElementById('search-js');
     script.onload = function () {
       const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
-
       mapboxgl.accessToken = mapboxAccessToken;
+
       const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
@@ -97,6 +71,69 @@
       });
 
       map.addControl(new mapboxgl.NavigationControl());
+
+      map.on('load', function () {
+        // === Tileset Sources ===
+        map.addSource('main-layer-src', { type: 'vector', url: 'mapbox://alenkadic.bbyn5xor' });
+        map.addSource('gate1-src', { type: 'vector', url: 'mapbox://alenkadic.009jgd23' });
+        map.addSource('gate2-src', { type: 'vector', url: 'mapbox://alenkadic.dalclp0o' });
+        map.addSource('parking1-src', { type: 'vector', url: 'mapbox://alenkadic.0ehplcqt' });
+        map.addSource('parking2-src', { type: 'vector', url: 'mapbox://alenkadic.6fkyiriz' });
+
+        // === Layers ===
+        map.addLayer({
+          id: 'main-layer',
+          type: 'circle',
+          source: 'main-layer-src',
+          'source-layer': 'bbyn5xor',
+          paint: { 'circle-radius': 6, 'circle-color': '#FF5722' }
+        });
+
+        map.addLayer({
+          id: 'gate1-layer',
+          type: 'symbol',
+          source: 'gate1-src',
+          'source-layer': '009jgd23',
+          layout: { 'icon-image': 'marker-15', 'icon-size': 1.2 }
+        });
+
+        map.addLayer({
+          id: 'gate2-layer',
+          type: 'symbol',
+          source: 'gate2-src',
+          'source-layer': 'dalclp0o',
+          layout: { 'icon-image': 'marker-15', 'icon-size': 1.2 }
+        });
+
+        map.addLayer({
+          id: 'parking1-layer',
+          type: 'fill',
+          source: 'parking1-src',
+          'source-layer': '0ehplcqt',
+          paint: { 'fill-color': '#607D8B', 'fill-opacity': 0.4 }
+        });
+
+        map.addLayer({
+          id: 'parking2-layer',
+          type: 'fill',
+          source: 'parking2-src',
+          'source-layer': '6fkyiriz',
+          paint: { 'fill-color': '#3E2723', 'fill-opacity': 0.4 }
+        });
+
+        // === Interactivity for point layers ===
+        ['main-layer', 'gate1-layer', 'gate2-layer'].forEach(id => {
+          map.on('click', id, e => {
+            const props = e.features[0].properties;
+            new mapboxgl.Popup()
+              .setLngLat(e.lngLat)
+              .setHTML(`<strong>${id}</strong><br>${JSON.stringify(props, null, 2)}`)
+              .addTo(map);
+          });
+          map.on('mouseenter', id, () => map.getCanvas().style.cursor = 'pointer');
+          map.on('mouseleave', id, () => map.getCanvas().style.cursor = '');
+        });
+      });
 
       let directionsControl = null;
       let directionsVisible = false;
@@ -123,66 +160,24 @@
               const userLng = position.coords.longitude;
               const userLat = position.coords.latitude;
 
-              map.flyTo({
-                center: [userLng, userLat],
-                zoom: 13,
-                essential: true
-              });
+              map.flyTo({ center: [userLng, userLat], zoom: 13, essential: true });
 
               new mapboxgl.Marker({ color: '#007cbf' })
                 .setLngLat([userLng, userLat])
                 .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
                 .addTo(map);
+
+              if (directionsControl) {
+                directionsControl.setOrigin([userLng, userLat]);
+              }
             },
-            function (error) {
-              alert('Geolocation failed or was denied.');
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            }
+            () => alert('Geolocation failed or was denied.'),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
           );
         } else {
           alert("Your browser doesn't support geolocation.");
         }
       });
-
-document.getElementById('geolocate-button').addEventListener('click', function () {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function (position) {
-        const userLng = position.coords.longitude;
-        const userLat = position.coords.latitude;
-
-        map.flyTo({
-          center: [userLng, userLat],
-          zoom: 13,
-          essential: true
-        });
-
-        new mapboxgl.Marker({ color: '#007cbf' })
-          .setLngLat([userLng, userLat])
-          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
-          .addTo(map);
-
-        if (directionsControl) {
-          directionsControl.setOrigin([userLng, userLat]);
-        }
-      },
-      function (error) {
-        alert('Geolocation failed or was denied.');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
-  } else {
-    alert("Your browser doesn't support geolocation.");
-  }
-});
 
       const searchBox = new mapboxsearch.MapboxSearchBox();
       searchBox.accessToken = mapboxAccessToken;
@@ -190,7 +185,9 @@ document.getElementById('geolocate-button').addEventListener('click', function (
       searchBox.mapboxgl = mapboxgl;
       searchBox.marker = true;
       searchBox.bindMap(map);
-      document.getElementById('search-box-container').appendChild(searchBox);
+      const boxEl = searchBox.getElement();
+      boxEl.querySelector('input').setAttribute('placeholder', 'Let’s get the ball rolling...');
+      document.getElementById('search-box-container').appendChild(boxEl);
     };
   </script>
 </body>
