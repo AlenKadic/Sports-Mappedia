@@ -172,9 +172,16 @@
           'PARKING',
           'PARKINZI'
         ];
-         
+
+        // Helper function to add interactions if layer exists
+        function addLayerInteractionsIfExists(layerId, isPolygon = false) {
+          if (!map.getLayer(layerId)) {
+            console.log(`Layer ${layerId} does not exist in the map style`);
+            return false;
+          }
+          
           // Click: Show popup with feature properties
-          map.addInteraction(${layerId}-click, {
+          map.addInteraction(`${layerId}-click`, {
             type: 'click',
             target: { layerId },
             handler: ({ feature }) => {
@@ -193,7 +200,7 @@
                 .setLngLat(coordinates)
                 .setHTML(
                   Object.entries(feature.properties)
-                    .map(([k, v]) => <div><b>${k}</b>: ${v}</div>)
+                    .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
                     .join('')
                 )
                 .addTo(map);
@@ -201,7 +208,7 @@
           });
 
           // Hover: Highlight feature
-          map.addInteraction(${layerId}-mouseenter, {
+          map.addInteraction(`${layerId}-mouseenter`, {
             type: 'mouseenter',
             target: { layerId },
             handler: ({ feature }) => {
@@ -210,7 +217,7 @@
             }
           });
 
-          map.addInteraction(${layerId}-mouseleave, {
+          map.addInteraction(`${layerId}-mouseleave`, {
             type: 'mouseleave',
             target: { layerId },
             handler: ({ feature }) => {
