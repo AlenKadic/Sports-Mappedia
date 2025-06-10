@@ -116,6 +116,7 @@
         directionsVisible = !directionsVisible;
       });
 
+      // Removed duplicate event listener and kept only this one
       document.getElementById('geolocate-button').addEventListener('click', function () {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -133,6 +134,10 @@
                 .setLngLat([userLng, userLat])
                 .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
                 .addTo(map);
+
+              if (directionsControl) {
+                directionsControl.setOrigin([userLng, userLat]);
+              }
             },
             function (error) {
               alert('Geolocation failed or was denied.');
@@ -147,42 +152,6 @@
           alert("Your browser doesn't support geolocation.");
         }
       });
-
-document.getElementById('geolocate-button').addEventListener('click', function () {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function (position) {
-        const userLng = position.coords.longitude;
-        const userLat = position.coords.latitude;
-
-        map.flyTo({
-          center: [userLng, userLat],
-          zoom: 13,
-          essential: true
-        });
-
-        new mapboxgl.Marker({ color: '#007cbf' })
-          .setLngLat([userLng, userLat])
-          .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
-          .addTo(map);
-
-        if (directionsControl) {
-          directionsControl.setOrigin([userLng, userLat]);
-        }
-      },
-      function (error) {
-        alert('Geolocation failed or was denied.');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      }
-    );
-  } else {
-    alert("Your browser doesn't support geolocation.");
-  }
-});
 
       // --- INTERACTION CODE STARTS HERE ---
       map.on('style.load', () => {
@@ -204,56 +173,29 @@ document.getElementById('geolocate-button').addEventListener('click', function (
           'Sports_Mappedia_-_WC2026_-_Ci-bejloz'
         ];
 
-        // Add interactions for marker layers
-        markerLayers.forEach(layerId => {
+        // Helper function to add interactions if layer exists
+        function addLayerInteractionsIfExists(layerId, isPolygon = false) {
+          if (!map.getLayer(layerId)) {
+            console.log(`Layer ${layerId} does not exist in the map style`);
+            return false;
+          }
+          
           // Click: Show popup with feature properties
           map.addInteraction(`${layerId}-click`, {
             type: 'click',
             target: { layerId },
             handler: ({ feature }) => {
-              new mapboxgl.Popup()
-                .setLngLat(feature.geometry.coordinates)
-                .setHTML(
-                  Object.entries(feature.properties)
-                    .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
-                    .join('')
-                )
-                .addTo(map);
-            }
-          });
-
-          // Hover: Highlight marker
-          map.addInteraction(`${layerId}-mouseenter`, {
-            type: 'mouseenter',
-            target: { layerId },
-            handler: ({ feature }) => {
-              map.setFeatureState(feature, { highlight: true });
-              map.getCanvas().style.cursor = 'pointer';
-            }
-          });
-
-          map.addInteraction(`${layerId}-mouseleave`, {
-            type: 'mouseleave',
-            target: { layerId },
-            handler: ({ feature }) => {
-              map.setFeatureState(feature, { highlight: false });
-              map.getCanvas().style.cursor = '';
-              return false;
-            }
-          });
-        });
-
-        // Add interactions for polygon layers
-        polygonLayers.forEach(layerId => {
-          // Click: Show popup with feature properties
-          map.addInteraction(`${layerId}-click`, {
-            type: 'click',
-            target: { layerId },
-            handler: ({ feature }) => {
-              // For polygons, use the first coordinate for the popup
-              const coordinates = feature.geometry.type === 'Polygon'
-                ? feature.geometry.coordinates[0][0]
-                : feature.geometry.coordinates;
+              let coordinates;
+              
+              if (isPolygon) {
+                // For polygons, use the first coordinate for the popup
+                coordinates = feature.geometry.type === 'Polygon'
+                  ? feature.geometry.coordinates[0][0]
+                  : feature.geometry.coordinates;
+              } else {
+                coordinates = feature.geometry.coordinates;
+              }
+              
               new mapboxgl.Popup()
                 .setLngLat(coordinates)
                 .setHTML(
@@ -265,7 +207,7 @@ document.getElementById('geolocate-button').addEventListener('click', function (
             }
           });
 
-          // Hover: Highlight polygon
+          // Hover: Highlight feature
           map.addInteraction(`${layerId}-mouseenter`, {
             type: 'mouseenter',
             target: { layerId },
@@ -284,6 +226,18 @@ document.getElementById('geolocate-button').addEventListener('click', function (
               return false;
             }
           });
+          
+          return true;
+        }
+
+        // Add interactions for marker layers that exist
+        markerLayers.forEach(layerId => {
+          addLayerInteractionsIfExists(layerId, false);
+        });
+
+        // Add interactions for polygon layers that exist
+        polygonLayers.forEach(layerId => {
+          addLayerInteractionsIfExists(layerId, true);
         });
       });
       // --- INTERACTION CODE ENDS HERE ---
