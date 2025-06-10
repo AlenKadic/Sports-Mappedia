@@ -75,22 +75,6 @@
         margin-top: 10px !important;
       }
     }
-    
-table {
-  border-collapse: collapse;
-  margin: 10px 0;
-  font-size: 12px;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 4px 8px;
-  text-align: center;
-}
-
-th {
-  background-color: #f2f2f2;
-}
   </style>
 </head>
 <body>
@@ -111,53 +95,17 @@ th {
         center: [-103.213, 39.176],
         zoom: 3
       });
-      
+
       map.addControl(new mapboxgl.NavigationControl());
 
       let directionsControl = null;
       let directionsVisible = false;
 
-// Add this after your map initialization
-let matrixClient = null;
-
-// Modify your toggle-directions event listener
-document.getElementById('toggle-directions').addEventListener('click', function () {
-  if (!directionsVisible) {
-directionsControl = new MapboxDirections({
-  accessToken: mapboxAccessToken,
-  controls: { instructions: true }
-});
-
-// ✅ Hook the Matrix API logic here
-directionsControl.on('route', function(e) {
-  const wps = directionsControl.getWaypoints()
-    .filter(wp => wp.location)
-    .map(wp => wp.location);
-  if (wps.length < 2) return;
-
-  const prof = directionsControl.getProfile() || 'driving';
-  const coords = wps.map(c => c.join(',')).join(';');
-  fetch(`https://api.mapbox.com/directions-matrix/v1/mapbox/${prof}/${coords}?access_token=${mapboxAccessToken}`)
-    .then(r => r.json())
-    .then(data => {
-      if (!data.durations) return;
-      let html = '<table><tr><th></th>' + wps.map((_, i) => `<th>To ${i+1}</th>`).join('') + '</tr>';
-      data.durations.forEach((row, i) => {
-        html += `<tr><th>From ${i+1}</th>` +
-                row.map(sec => `<td>${(sec/60).toFixed(1)}</td>`).join('') +
-                '</tr>';
-      });
-      html += '</table>';
-
-      new mapboxgl.Popup()
-        .setLngLat(wps[0])
-        .setHTML(html)
-        .addTo(map);
-    })
-    .catch(console.error);
-});
-map.addControl(directionsControl, 'top-left');
-        this.textContent = 'Hide Directions';
+      document.getElementById('toggle-directions').addEventListener('click', function () {
+        if (!directionsVisible) {
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          map.addControl(directionsControl, 'top-left');
+          this.textContent = 'Hide Directions';
         } else {
           if (directionsControl) {
             map.removeControl(directionsControl);
