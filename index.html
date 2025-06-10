@@ -4,10 +4,15 @@
   <meta charset="utf-8">
   <title>My Mapbox Studio Map with Directions</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <!-- ... (your original styles and scripts remain unchanged) ... -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
+  <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
     #search-box-container {
       position: absolute;
       z-index: 2;
@@ -16,6 +21,7 @@
       margin-left: -25%;
       top: 10px;
     }
+
     #toggle-directions, #geolocate-button {
       position: absolute;
       z-index: 10;
@@ -24,29 +30,28 @@
       border: 1px solid #ccc;
       cursor: pointer;
     }
-    #toggle-directions { top: 10px; left: 10px; }
-    #geolocate-button { top: 10px; left: 185px; }
-    /* ADDED BUTTON STYLES */
-    #calc-matrix {
-      position: absolute;
-      z-index: 10;
-      padding: 8px 12px;
-      background-color: white;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      top: 50px;
+
+    #toggle-directions {
+      top: 10px;
       left: 10px;
     }
+
+    #geolocate-button {
+      top: 10px;
+      left: 185px;
+    }
+
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
       margin-top: 60px !important;
     }
-    /* ... (your responsive media queries remain) ... */
+
     @media (max-width: 600px) {
       #search-box-container {
         width: 80%;
         margin-left: -45%;
         top: 10px;
       }
+
       #toggle-directions {
         top: auto;
         bottom: 70px;
@@ -55,6 +60,7 @@
         font-size: 16px;
         padding: 10px 16px;
       }
+
       #geolocate-button {
         top: auto;
         bottom: 20px;
@@ -63,18 +69,10 @@
         font-size: 16px;
         padding: 10px 16px;
       }
+
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
         margin-left: 20px !important;
         margin-top: 10px !important;
-      }
-      /* Ensure Matrix button is still visible */
-      #calc-matrix {
-        top: auto;
-        bottom: 120px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 16px;
-        padding: 10px 16px;
       }
     }
   </style>
@@ -83,15 +81,12 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
-  <!-- ADDED MATRIX BUTTON -->
-  <button id="calc-matrix">Compute Time Matrix</button>
-
   <div id="map"></div>
 
   <script>
     const script = document.getElementById('search-js');
     script.onload = function () {
-      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iZGNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
+      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
       mapboxgl.accessToken = mapboxAccessToken;
       const map = new mapboxgl.Map({
@@ -121,6 +116,7 @@
         directionsVisible = !directionsVisible;
       });
 
+      // Removed duplicate event listener and kept only this one
       document.getElementById('geolocate-button').addEventListener('click', function () {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -177,38 +173,42 @@
           'PARKINZI'
         ];
 
+        // Helper function to add interactions if layer exists
         function addLayerInteractionsIfExists(layerId, isPolygon = false) {
           if (!map.getLayer(layerId)) {
-            console.log(`Layer ${layerId} does not exist in the map style`);
+            console.log(Layer ${layerId} does not exist in the map style);
             return false;
           }
-
-          map.addInteraction(`${layerId}-click`, {
+          
+          // Click: Show popup with feature properties
+          map.addInteraction(${layerId}-click, {
             type: 'click',
             target: { layerId },
             handler: ({ feature }) => {
               let coordinates;
-
+              
               if (isPolygon) {
+                // For polygons, use the first coordinate for the popup
                 coordinates = feature.geometry.type === 'Polygon'
                   ? feature.geometry.coordinates[0][0]
                   : feature.geometry.coordinates;
               } else {
                 coordinates = feature.geometry.coordinates;
               }
-
+              
               new mapboxgl.Popup()
                 .setLngLat(coordinates)
                 .setHTML(
                   Object.entries(feature.properties)
-                    .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
+                    .map(([k, v]) => <div><b>${k}</b>: ${v}</div>)
                     .join('')
                 )
                 .addTo(map);
             }
           });
 
-          map.addInteraction(`${layerId}-mouseenter`, {
+          // Hover: Highlight feature
+          map.addInteraction(${layerId}-mouseenter, {
             type: 'mouseenter',
             target: { layerId },
             handler: ({ feature }) => {
@@ -217,7 +217,7 @@
             }
           });
 
-          map.addInteraction(`${layerId}-mouseleave`, {
+          map.addInteraction(${layerId}-mouseleave, {
             type: 'mouseleave',
             target: { layerId },
             handler: ({ feature }) => {
@@ -226,20 +226,22 @@
               return false;
             }
           });
-
+          
           return true;
         }
 
+        // Add interactions for marker layers that exist
         markerLayers.forEach(layerId => {
           addLayerInteractionsIfExists(layerId, false);
         });
 
+        // Add interactions for polygon layers that exist
         polygonLayers.forEach(layerId => {
           addLayerInteractionsIfExists(layerId, true);
         });
       });
       // --- INTERACTION CODE ENDS HERE ---
-
+      
       const searchBox = new mapboxsearch.MapboxSearchBox();
       searchBox.accessToken = mapboxAccessToken;
       searchBox.options = { proximity: [-103.213, 39.176] };
@@ -247,29 +249,6 @@
       searchBox.marker = true;
       searchBox.bindMap(map);
       document.getElementById('search-box-container').appendChild(searchBox);
-
-      // --- MATRIX API LOGIC ADDED BELOW ---
-      document.getElementById('calc-matrix').addEventListener('click', async function () {
-        const coords = [
-          [-103.213, 39.176],
-          [-118.2481, 33.8703]
-        ];
-        const coordStr = coords.map(c => c.join(',')).join(';');
-        const res = await fetch(
-          `https://api.mapbox.com/directions-matrix/v1/mapbox/driving/${coordStr}` +
-          `?access_token=${mapboxAccessToken}&annotations=duration,distance`
-        );
-        const data = await res.json();
-        if (data.code !== 'Ok') {
-          alert('Matrix error: ' + data.code);
-          return;
-        }
-        const mins = Math.round(data.durations[0][1] / 60);
-        const kms = (data.distances[0][1] / 1000).toFixed(1);
-        alert(`A→B Time: ${mins} min\nDistance: ${kms} km`);
-        console.log('Matrix:', data.durations, data.distances);
-      });
-      // --- MATRIX API LOGIC ENDS HERE ---
     };
   </script>
 </body>
