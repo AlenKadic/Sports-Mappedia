@@ -75,6 +75,22 @@
         margin-top: 10px !important;
       }
     }
+    
+table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #f2f2f2;
+}
   </style>
 </head>
 <body>
@@ -96,16 +112,85 @@
         zoom: 3
       });
 
+      let matrixClient = null;
+      
       map.addControl(new mapboxgl.NavigationControl());
 
       let directionsControl = null;
       let directionsVisible = false;
 
-      document.getElementById('toggle-directions').addEventListener('click', function () {
-        if (!directionsVisible) {
-          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
-          map.addControl(directionsControl, 'top-left');
-          this.textContent = 'Hide Directions';
+// Add this after your map initialization
+let matrixClient = null;
+
+// Modify your toggle-directions event listener
+document.getElementById('toggle-directions').addEventListener('click', function () {
+  if (!directionsVisible) {
+    directionsControl = new MapboxDirections({ 
+      accessToken: mapboxAccessToken,
+      // Add a callback for when routes are calculated
+      controls: {
+        instructions: true
+      }
+    });
+    
+    // Listen for route updates from the directions control
+    directionsControl.on('route', function(event) {
+      if (event.route && event.route.length > 0) {
+        // Get waypoints from the directions control
+        const waypoints = directionsControl.getWaypoints()
+          .filter(wp => wp.location) // Filter out any undefined waypoints
+          .map(wp => wp.location);
+          
+        // Only proceed if we have at least 2 waypoints
+        if (waypoints.length >= 2) {
+          // Create URL for Matrix API request
+          const profile = directionsControl.getProfile() || 'driving';
+          const coordinatesString = waypoints.map(coord => coord.join(',')).join(';');
+          const matrixUrl = `https://api.mapbox.com/directions-matrix/v1/mapbox/${profile}/${coordinatesString}?access_token=${mapboxAccessToken}`;
+          
+          // Make the Matrix API request
+          fetch(matrixUrl)
+            .then(response => response.json())
+            .then(data => {
+              // Process matrix data - for example, add a popup with travel times
+              if (data.durations) {
+                let matrixInfo = '<h3>Travel Time Matrix (minutes)</h3><table>';
+                
+                // Create a table header
+                matrixInfo += '<tr><th></th>';
+                for (let i = 0; i < waypoints.length; i++) {
+                  matrixInfo += `<th>To ${i+1}</th>`;
+                }
+                matrixInfo += '</tr>';
+                
+                // Create table rows with durations
+                for (let i = 0; i < waypoints.length; i++) {
+                  matrixInfo += `<tr><th>From ${i+1}</th>`;
+                  for (let j = 0; j < waypoints.length; j++) {
+                    // Convert seconds to minutes and round
+                    const minutes = Math.round(data.durations[i][j] / 60 * 10) / 10;
+                    matrixInfo += `<td>${minutes}</td>`;
+                  }
+                  matrixInfo += '</tr>';
+                }
+                matrixInfo += '</table>';
+                
+                // Add a popup at the first waypoint with the matrix information
+                new mapboxgl.Popup()
+                  .setLngLat(waypoints[0])
+                  .setHTML(matrixInfo)
+                  .addTo(map);
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching matrix data:', error);
+            });
+        }
+      }
+    });
+    
+        map.addControl(directionsControl, 'top-left');
+        this.textContent = 'Hide Directions';
         } else {
           if (directionsControl) {
             map.removeControl(directionsControl);
