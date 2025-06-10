@@ -81,6 +81,7 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
+  <button id="calc-matrix">Compute Time Matrix</button>
   <div id="map"></div>
 
   <script>
@@ -250,6 +251,32 @@
       searchBox.bindMap(map);
       document.getElementById('search-box-container').appendChild(searchBox);
     };
+
+    document.getElementById('calc-matrix').addEventListener('click', async function () {
+  const coords = [
+    [-103.213, 39.176],     // Denver-ish
+    [-118.2481, 33.8703]    // LA-ish
+  ];
+  const coordStr = coords.map(c => c.join(',')).join(';');
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/directions-matrix/v1/mapbox/driving/${coordStr}` +
+      `?access_token=${mapboxAccessToken}&annotations=duration,distance`
+    );
+    const data = await res.json();
+    if (data.code !== 'Ok') {
+      alert('Matrix error: ' + data.code);
+      return;
+    }
+    const mins = Math.round(data.durations[0][1] / 60);
+    const kms = (data.distances[0][1] / 1000).toFixed(1);
+    alert(`A→B Time: ${mins} min\nDistance: ${kms} km`);
+    console.log('Matrix:', data.durations, data.distances);
+  } catch (err) {
+    alert('Matrix request failed.');
+    console.error(err);
+  }
+});
   </script>
 </body>
 </html>
