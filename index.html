@@ -81,6 +81,15 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
+  
+  <select id="stadium-team-filter" style="position: absolute; top: 60px; left: 10px; z-index: 10; padding: 6px;">
+  <option value="all">All Teams</option>
+  <option value="USA">USA</option>
+  <option value="Canada">Canada</option>
+  <option value="Mexico">Mexico</option>
+      <!-- Add more teams as needed -->
+</select>
+
   <div id="map"></div>
 
   <script>
@@ -166,6 +175,18 @@
           'ULAZI U STADION',
           'ULAZ U STADION'
         ];
+
+        document.getElementById('stadium-team-filter').addEventListener('change', function (e) {
+          const selectedTeam = e.target.value;
+
+          if (!map.getLayer('stadiums')) return;
+
+          if (selectedTeam === 'all') {
+            map.setFilter('stadiums', null); // Show all stadiums
+          } else {
+            map.setFilter('stadiums', ['==', ['get', 'team'], selectedTeam]);
+          }
+        });
 
         // List of polygon layers
         const polygonLayers = [
