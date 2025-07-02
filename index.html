@@ -45,6 +45,14 @@
       margin-top: 60px !important;
     }
 
+    #stadium-team-filter {
+     position: absolute;
+      top: 10px;
+      right: 150px;
+      z-index: 10;
+      padding: 10px;
+    }
+
     @media (max-width: 600px) {
       #search-box-container {
         width: 80%;
@@ -55,7 +63,7 @@
       #toggle-directions {
         top: auto;
         bottom: 70px;
-        left: 50%;
+        left: 25%;
         transform: translateX(-50%);
         font-size: 16px;
         padding: 10px 16px;
@@ -74,6 +82,14 @@
         margin-left: 20px !important;
         margin-top: 10px !important;
       }
+
+      #stadium-team-filter {
+        position: absolute;
+        bottom: 20px;
+        right: 25%;
+        z-index: 10;
+        padding: 10px;
+      }
     }
   </style>
 </head>
@@ -82,7 +98,7 @@
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
   
-  <select id="stadium-team-filter" style="position: absolute; top: 10px; right: 150px; z-index: 10; padding: 10px;">
+  <select id="stadium-team-filter">
   <option value="all">All Teams</option>
   <option value="USA">USA</option>
   <option value="Canada">Canada</option>
