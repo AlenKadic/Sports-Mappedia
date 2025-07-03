@@ -192,21 +192,17 @@
           'ULAZ U STADION'
         ];
 
-      document.getElementById('stadium-description-filter').addEventListener('change', function (e) {
-        const selectedKeyword = e.target.value;
+        document.getElementById('stadium-description-filter').addEventListener('change', function (e) {
+          const selectedTeam = e.target.value;
 
-        if (!map.getLayer('stadiums')) return;
+          if (!map.getLayer('stadiums')) return;
 
-        if (selectedKeyword === 'all') {
-          map.setFilter('stadiums', null);
-        } else {
-          map.setFilter('stadiums', [
-            '>=',
-            ['index-of', selectedKeyword, ['get', 'description']],
-            0
-          ]);
-         }
-       });
+          if (selectedTeam === 'all') {
+            map.setFilter('stadiums', null); // Show all stadiums
+          } else {
+            map.setFilter('stadiums', ['==', ['get', 'description'], selectedTeam]);
+          }
+        });
 
         // List of polygon layers
         const polygonLayers = [
