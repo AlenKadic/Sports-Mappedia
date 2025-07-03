@@ -41,16 +41,16 @@
       left: 185px;
     }
 
-    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
-      margin-top: 60px !important;
-    }
-
     #stadium-description-filter {
-     position: absolute;
+      position: absolute;
       top: 10px;
       right: 150px;
       z-index: 10;
       padding: 10px;
+    }
+
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 60px !important;
     }
 
     @media (max-width: 600px) {
@@ -85,9 +85,12 @@
 
       #stadium-description-filter {
         top: auto;
-        bottom: 70px;
-        right: 10%;
-        z-index: 10;
+        bottom: 130px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: 80%;
+        font-size: 16px;
         padding: 10px;
       }
     }
@@ -97,14 +100,13 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
-  
+
   <select id="stadium-description-filter">
-  <option value="all">All Teams</option>
-  <option value="USA">USA</option>
-  <option value="Canada">Canada</option>
-  <option value="Mexico">Mexico</option>
-      <!-- Add more teams as needed -->
-</select>
+    <option value="all">All</option>
+    <option value="USA">USA</option>
+    <option value="Canada">Canada</option>
+    <option value="Mexico">Mexico</option>
+  </select>
 
   <div id="map"></div>
 
@@ -141,7 +143,6 @@
         directionsVisible = !directionsVisible;
       });
 
-      // Removed duplicate event listener and kept only this one
       document.getElementById('geolocate-button').addEventListener('click', function () {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -178,9 +179,7 @@
         }
       });
 
-      // --- INTERACTION CODE STARTS HERE ---
       map.on('style.load', () => {
-        // List of marker layers
         const markerLayers = [
           'medium-airports',
           'cities',
@@ -192,47 +191,47 @@
           'ULAZ U STADION'
         ];
 
+        // 🧠 FILTER BY DESCRIPTION SUBSTRING
         document.getElementById('stadium-description-filter').addEventListener('change', function (e) {
-          const selectedTeam = e.target.value;
+          const keyword = e.target.value;
 
           if (!map.getLayer('stadiums')) return;
 
-          if (selectedTeam === 'all') {
-            map.setFilter('stadiums', null); // Show all stadiums
+          if (keyword === 'all') {
+            map.setFilter('stadiums', null);
           } else {
-            map.setFilter('stadiums', ['==', ['get', 'description'], selectedTeam]);
+            map.setFilter('stadiums', [
+              '>=',
+              ['index-of', keyword, ['get', 'description']],
+              0
+            ]);
           }
         });
 
-        // List of polygon layers
         const polygonLayers = [
           'PARKING',
           'PARKINZI'
         ];
 
-        // Helper function to add interactions if layer exists
         function addLayerInteractionsIfExists(layerId, isPolygon = false) {
           if (!map.getLayer(layerId)) {
             console.log(`Layer ${layerId} does not exist in the map style`);
             return false;
           }
-          
-          // Click: Show popup with feature properties
+
           map.addInteraction(`${layerId}-click`, {
             type: 'click',
             target: { layerId },
             handler: ({ feature }) => {
               let coordinates;
-              
               if (isPolygon) {
-                // For polygons, use the first coordinate for the popup
                 coordinates = feature.geometry.type === 'Polygon'
                   ? feature.geometry.coordinates[0][0]
                   : feature.geometry.coordinates;
               } else {
                 coordinates = feature.geometry.coordinates;
               }
-              
+
               new mapboxgl.Popup()
                 .setLngLat(coordinates)
                 .setHTML(
@@ -244,7 +243,6 @@
             }
           });
 
-          // Hover: Highlight feature
           map.addInteraction(`${layerId}-mouseenter`, {
             type: 'mouseenter',
             target: { layerId },
@@ -263,22 +261,19 @@
               return false;
             }
           });
-          
+
           return true;
         }
 
-        // Add interactions for marker layers that exist
         markerLayers.forEach(layerId => {
           addLayerInteractionsIfExists(layerId, false);
         });
 
-        // Add interactions for polygon layers that exist
         polygonLayers.forEach(layerId => {
           addLayerInteractionsIfExists(layerId, true);
         });
       });
-      // --- INTERACTION CODE ENDS HERE ---
-      
+
       const searchBox = new mapboxsearch.MapboxSearchBox();
       searchBox.accessToken = mapboxAccessToken;
       searchBox.options = { proximity: [-103.213, 39.176] };
