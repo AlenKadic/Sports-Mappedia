@@ -45,7 +45,7 @@
       margin-top: 60px !important;
     }
 
-    #stadium-team-filter {
+    #stadium-description-filter {
      position: absolute;
       top: 10px;
       right: 150px;
@@ -83,7 +83,7 @@
         margin-top: 10px !important;
       }
 
-      #stadium-team-filter {
+      #stadium-description-filter {
         top: auto;
         bottom: 70px;
         right: 10%;
@@ -98,7 +98,7 @@
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
   
-  <select id="stadium-team-filter">
+  <select id="stadium-description-filter">
   <option value="all">All Teams</option>
   <option value="USA">USA</option>
   <option value="Canada">Canada</option>
@@ -192,7 +192,7 @@
           'ULAZ U STADION'
         ];
 
-        document.getElementById('stadium-team-filter').addEventListener('change', function (e) {
+        document.getElementById('stadium-description-filter').addEventListener('change', function (e) {
           const selectedTeam = e.target.value;
 
           if (!map.getLayer('stadiums')) return;
@@ -200,7 +200,7 @@
           if (selectedTeam === 'all') {
             map.setFilter('stadiums', null); // Show all stadiums
           } else {
-            map.setFilter('stadiums', ['==', ['get', 'team'], selectedTeam]);
+            map.setFilter('stadiums', ['==', ['get', 'description'], selectedTeam]);
           }
         });
 
