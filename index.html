@@ -200,12 +200,8 @@
           if (selectedKeyword === 'all') {
             map.setFilter('stadiums', null);
           } else {
-            map.setFilter('stadiums', [
-              '>=',
-              ['index-of', selectedKeyword, ['get', 'address']],
-              0
-            ]);
-          }
+            map.setFilter('stadiums', ['==', ['get', 'address'], selectedKeyword]);
+            }
         });
         
         // List of polygon layers
