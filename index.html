@@ -193,17 +193,21 @@
         ];
 
         document.getElementById('stadium-description-filter').addEventListener('change', function (e) {
-          const selectedTeam = e.target.value;
+          const selectedKeyword = e.target.value;
 
           if (!map.getLayer('stadiums')) return;
 
-          if (selectedTeam === 'all') {
-            map.setFilter('stadiums', null); // Show all stadiums
+          if (selectedKeyword === 'all') {
+            map.setFilter('stadiums', null);
           } else {
-            map.setFilter('stadiums', ['==', ['get', 'description'], selectedTeam]);
+            map.setFilter('stadiums', [
+              '>=',
+              ['index-of', selectedKeyword, ['get', 'description']],
+              0
+            ]);
           }
         });
-
+        
         // List of polygon layers
         const polygonLayers = [
           'PARKING',
