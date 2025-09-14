@@ -6,7 +6,10 @@
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
-  <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
+
+  <!-- Mapbox Search JS (provides MapboxGeocoder custom element/class) -->
+  <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.3.0/web.js"></script>
+
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
   <style>
@@ -31,22 +34,13 @@
       cursor: pointer;
     }
 
-    #toggle-directions {
-      top: 10px;
-      left: 10px;
-    }
+    #toggle-directions { top: 10px; left: 10px; }
+    #geolocate-button { top: 10px; left: 185px; }
 
-    #geolocate-button {
-      top: 10px;
-      left: 185px;
-    }
-
-    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
-      margin-top: 60px !important;
-    }
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
 
     #stadium-address-filter {
-     position: absolute;
+      position: absolute;
       top: 10px;
       right: 150px;
       z-index: 10;
@@ -54,42 +48,19 @@
     }
 
     @media (max-width: 600px) {
-      #search-box-container {
-        width: 80%;
-        margin-left: -45%;
-        top: 10px;
-      }
-
+      #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
       #toggle-directions {
-        top: auto;
-        bottom: 70px;
-        left: 25%;
-        transform: translateX(-50%);
-        font-size: 16px;
-        padding: 10px 16px;
+        top: auto; bottom: 70px; left: 25%; transform: translateX(-50%);
+        font-size: 16px; padding: 10px 16px;
       }
-
       #geolocate-button {
-        top: auto;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 16px;
-        padding: 10px 16px;
+        top: auto; bottom: 20px; left: 50%; transform: translateX(-50%);
+        font-size: 16px; padding: 10px 16px;
       }
-
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
-        margin-left: 20px !important;
-        margin-top: 10px !important;
+        margin-left: 20px !important; margin-top: 10px !important;
       }
-
-      #stadium-address-filter {
-        top: auto;
-        bottom: 70px;
-        right: 10%;
-        z-index: 10;
-        padding: 10px;
-      }
+      #stadium-address-filter { top: auto; bottom: 70px; right: 10%; z-index: 10; padding: 10px; }
     }
   </style>
 </head>
@@ -97,14 +68,13 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
-  
+
   <select id="stadium-address-filter">
-  <option value="all">All Teams</option>
-  <option value="USA">USA</option>
-  <option value="Canada">Canada</option>
-  <option value="Mexico">Mexico</option>
-      <!-- Add more teams as needed -->
-</select>
+    <option value="all">All Teams</option>
+    <option value="USA">USA</option>
+    <option value="Canada">Canada</option>
+    <option value="Mexico">Mexico</option>
+  </select>
 
   <div id="map"></div>
 
@@ -141,7 +111,6 @@
         directionsVisible = !directionsVisible;
       });
 
-      // Removed duplicate event listener and kept only this one
       document.getElementById('geolocate-button').addEventListener('click', function () {
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -149,11 +118,7 @@
               const userLng = position.coords.longitude;
               const userLat = position.coords.latitude;
 
-              map.flyTo({
-                center: [userLng, userLat],
-                zoom: 13,
-                essential: true
-              });
+              map.flyTo({ center: [userLng, userLat], zoom: 13, essential: true });
 
               new mapboxgl.Marker({ color: '#007cbf' })
                 .setLngLat([userLng, userLat])
@@ -164,14 +129,8 @@
                 directionsControl.setOrigin([userLng, userLat]);
               }
             },
-            function (error) {
-              alert('Geolocation failed or was denied.');
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            }
+            function () { alert('Geolocation failed or was denied.'); },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
           );
         } else {
           alert("Your browser doesn't support geolocation.");
@@ -180,7 +139,6 @@
 
       // --- INTERACTION CODE STARTS HERE ---
       map.on('style.load', () => {
-        // List of marker layers
         const markerLayers = [
           'medium-airports',
           'cities',
@@ -194,45 +152,35 @@
 
         document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
           const selectedKeyword = e.target.value;
-
           if (!map.getLayer('stadiums')) return;
-
           if (selectedKeyword === 'all') {
             map.setFilter('stadiums', null);
           } else {
             map.setFilter('stadiums', ['==', ['get', 'address'], selectedKeyword]);
-            }
+          }
         });
-        
-        // List of polygon layers
-        const polygonLayers = [
-          'PARKING',
-          'PARKINZI'
-        ];
 
-        // Helper function to add interactions if layer exists
+        const polygonLayers = ['PARKING', 'PARKINZI'];
+
         function addLayerInteractionsIfExists(layerId, isPolygon = false) {
           if (!map.getLayer(layerId)) {
             console.log(`Layer ${layerId} does not exist in the map style`);
             return false;
           }
-          
-          // Click: Show popup with feature properties
+
           map.addInteraction(`${layerId}-click`, {
             type: 'click',
             target: { layerId },
             handler: ({ feature }) => {
               let coordinates;
-              
               if (isPolygon) {
-                // For polygons, use the first coordinate for the popup
                 coordinates = feature.geometry.type === 'Polygon'
                   ? feature.geometry.coordinates[0][0]
                   : feature.geometry.coordinates;
               } else {
                 coordinates = feature.geometry.coordinates;
               }
-              
+
               new mapboxgl.Popup()
                 .setLngLat(coordinates)
                 .setHTML(
@@ -244,7 +192,6 @@
             }
           });
 
-          // Hover: Highlight feature
           map.addInteraction(`${layerId}-mouseenter`, {
             type: 'mouseenter',
             target: { layerId },
@@ -263,29 +210,26 @@
               return false;
             }
           });
-          
+
           return true;
         }
 
-        // Add interactions for marker layers that exist
-        markerLayers.forEach(layerId => {
-          addLayerInteractionsIfExists(layerId, false);
-        });
-
-        // Add interactions for polygon layers that exist
-        polygonLayers.forEach(layerId => {
-          addLayerInteractionsIfExists(layerId, true);
-        });
+        markerLayers.forEach(layerId => addLayerInteractionsIfExists(layerId, false));
+        polygonLayers.forEach(layerId => addLayerInteractionsIfExists(layerId, true));
       });
       // --- INTERACTION CODE ENDS HERE ---
-      
-      const searchBox = new mapboxsearch.MapboxSearchBox();
-      searchBox.accessToken = mapboxAccessToken;
-      searchBox.options = { proximity: [-103.213, 39.176] };
-      searchBox.mapboxgl = mapboxgl;
-      searchBox.marker = true;
-      searchBox.bindMap(map);
-      document.getElementById('search-box-container').appendChild(searchBox);
+
+      // REPLACED: MapboxSearchBox -> MapboxGeocoder (Geocoding API)
+      const geocoder = new mapboxsearch.MapboxGeocoder();
+      geocoder.accessToken = mapboxAccessToken;
+      geocoder.options = {
+        // Configure as needed: language, country, proximity, etc.
+        proximity: [-103.213, 39.176]
+      };
+      geocoder.mapboxgl = mapboxgl;
+      geocoder.marker = true;
+      geocoder.bindMap(map);
+      document.getElementById('search-box-container').appendChild(geocoder);
     };
   </script>
 </body>
