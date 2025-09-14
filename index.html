@@ -6,14 +6,9 @@
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
-
-  <!-- REPLACEMENT: use Geocoding plugin instead of Search Box API -->
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.css">
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.1/mapbox-gl-geocoder.min.js"></script>
-
+  <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.0.0/web.js"></script>
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -36,13 +31,22 @@
       cursor: pointer;
     }
 
-    #toggle-directions { top: 10px; left: 10px; }
-    #geolocate-button { top: 10px; left: 185px; }
+    #toggle-directions {
+      top: 10px;
+      left: 10px;
+    }
 
-    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
+    #geolocate-button {
+      top: 10px;
+      left: 185px;
+    }
+
+    .mapboxgl-ctrl-top-left > .mapboxgl-ctrl {
+      margin-top: 60px !important;
+    }
 
     #stadium-address-filter {
-      position: absolute;
+     position: absolute;
       top: 10px;
       right: 150px;
       z-index: 10;
@@ -50,23 +54,41 @@
     }
 
     @media (max-width: 600px) {
-      #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
+      #search-box-container {
+        width: 80%;
+        margin-left: -45%;
+        top: 10px;
+      }
+
       #toggle-directions {
-        top: auto; bottom: 70px; left: 25%;
+        top: auto;
+        bottom: 70px;
+        left: 25%;
         transform: translateX(-50%);
-        font-size: 16px; padding: 10px 16px;
+        font-size: 16px;
+        padding: 10px 16px;
       }
+
       #geolocate-button {
-        top: auto; bottom: 20px; left: 50%;
+        top: auto;
+        bottom: 20px;
+        left: 50%;
         transform: translateX(-50%);
-        font-size: 16px; padding: 10px 16px;
+        font-size: 16px;
+        padding: 10px 16px;
       }
+
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
-        margin-left: 20px !important; margin-top: 10px !important;
+        margin-left: 20px !important;
+        margin-top: 10px !important;
       }
+
       #stadium-address-filter {
-        top: auto; bottom: 70px; right: 10%;
-        z-index: 10; padding: 10px;
+        top: auto;
+        bottom: 70px;
+        right: 10%;
+        z-index: 10;
+        padding: 10px;
       }
     }
   </style>
@@ -75,176 +97,196 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
-
+  
   <select id="stadium-address-filter">
-    <option value="all">All Teams</option>
-    <option value="USA">USA</option>
-    <option value="Canada">Canada</option>
-    <option value="Mexico">Mexico</option>
-    <!-- Add more teams as needed -->
-  </select>
+  <option value="all">All Teams</option>
+  <option value="USA">USA</option>
+  <option value="Canada">Canada</option>
+  <option value="Mexico">Mexico</option>
+      <!-- Add more teams as needed -->
+</select>
 
   <div id="map"></div>
 
   <script>
-    const mapboxAccessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
-    mapboxgl.accessToken = mapboxAccessToken;
+    const script = document.getElementById('search-js');
+    script.onload = function () {
+      const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
-      center: [-103.213, 39.176],
-      zoom: 3
-    });
-
-    map.addControl(new mapboxgl.NavigationControl());
-
-    // Directions toggle
-    let directionsControl = null;
-    let directionsVisible = false;
-    document.getElementById('toggle-directions').addEventListener('click', function () {
-      if (!directionsVisible) {
-        directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
-        map.addControl(directionsControl, 'top-left');
-        this.textContent = 'Hide Directions';
-      } else {
-        if (directionsControl) {
-          map.removeControl(directionsControl);
-          directionsControl = null;
-        }
-        this.textContent = 'Show Directions';
-      }
-      directionsVisible = !directionsVisible;
-    });
-
-    // Geolocate button
-    document.getElementById('geolocate-button').addEventListener('click', function () {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          function (position) {
-            const userLng = position.coords.longitude;
-            const userLat = position.coords.latitude;
-
-            map.flyTo({ center: [userLng, userLat], zoom: 13, essential: true });
-
-            new mapboxgl.Marker({ color: '#007cbf' })
-              .setLngLat([userLng, userLat])
-              .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
-              .addTo(map);
-
-            if (directionsControl) {
-              directionsControl.setOrigin([userLng, userLat]);
-            }
-          },
-          function () { alert('Geolocation failed or was denied.'); },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      } else {
-        alert("Your browser doesn't support geolocation.");
-      }
-    });
-
-    // ---------- INTERACTIONS (rewritten from map.addInteraction -> map.on) ----------
-    const markerLayers = [
-      'medium-airports',
-      'cities',
-      'large-airports',
-      'team-hotels',
-      'team-training-facilities',
-      'stadiums',
-      'ULAZI U STADION',
-      'ULAZ U STADION'
-    ];
-
-    const polygonLayers = [
-      'PARKING',
-      'PARKINZI'
-    ];
-
-    function wireLayerInteractions(layerId, isPolygon = false) {
-      if (!map.getLayer(layerId)) {
-        console.log(`Layer ${layerId} does not exist in the map style`);
-        return false;
-      }
-
-      // Click -> popup with all properties
-      map.on('click', layerId, (e) => {
-        const feature = e.features && e.features[0];
-        if (!feature) return;
-
-        let lngLat = e.lngLat;
-        try {
-          if (isPolygon) {
-            const g = feature.geometry;
-            if (g.type === 'Polygon') {
-              lngLat = g.coordinates[0][0];
-            } else if (g.type === 'MultiPolygon') {
-              lngLat = g.coordinates[0][0][0];
-            }
-          } else if (feature.geometry && Array.isArray(feature.geometry.coordinates)) {
-            lngLat = feature.geometry.coordinates;
-          }
-        } catch (_) { /* fallback to e.lngLat */ }
-
-        const html = Object.entries(feature.properties || {})
-          .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
-          .join('') || '<em>No properties</em>';
-
-        new mapboxgl.Popup({ offset: 8 })
-          .setLngLat(lngLat)
-          .setHTML(html)
-          .addTo(map);
+      mapboxgl.accessToken = mapboxAccessToken;
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
+        center: [-103.213, 39.176],
+        zoom: 3
       });
 
-      // Hover cursor change (simple, no feature-state requirement)
-      map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+      map.addControl(new mapboxgl.NavigationControl());
 
-      return true;
-    }
+      let directionsControl = null;
+      let directionsVisible = false;
 
-    // Re-attach interactions whenever style is ready
-    map.on('style.load', () => {
-      // Stadium filter dropdown
-      const filterEl = document.getElementById('stadium-address-filter');
-      filterEl.addEventListener('change', function (e) {
-        const selectedKeyword = e.target.value;
-        if (!map.getLayer('stadiums')) return;
-        if (selectedKeyword === 'all') {
-          map.setFilter('stadiums', null);
+      document.getElementById('toggle-directions').addEventListener('click', function () {
+        if (!directionsVisible) {
+          directionsControl = new MapboxDirections({ accessToken: mapboxAccessToken });
+          map.addControl(directionsControl, 'top-left');
+          this.textContent = 'Hide Directions';
         } else {
-          map.setFilter('stadiums', ['==', ['get', 'address'], selectedKeyword]);
+          if (directionsControl) {
+            map.removeControl(directionsControl);
+            directionsControl = null;
+          }
+          this.textContent = 'Show Directions';
         }
-      }, { once: true }); // attach only once per style load
+        directionsVisible = !directionsVisible;
+      });
 
-      markerLayers.forEach(id => wireLayerInteractions(id, false));
-      polygonLayers.forEach(id => wireLayerInteractions(id, true));
-    });
-    // ---------- END INTERACTIONS ----------
+      // Removed duplicate event listener and kept only this one
+      document.getElementById('geolocate-button').addEventListener('click', function () {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              const userLng = position.coords.longitude;
+              const userLat = position.coords.latitude;
 
-    // ---------- GEOCODER (replaces Search Box API) ----------
-    const geocoder = new MapboxGeocoder({
-      accessToken: mapboxAccessToken,
-      mapboxgl,
-      placeholder: 'Search for places',
-      marker: true,
-      proximity: { longitude: -103.213, latitude: 39.176 }, // bias near initial center
-      countries: 'us,ca,mx', // optional: keep if your data is North America–centric
-      limit: 8
-    });
+              map.flyTo({
+                center: [userLng, userLat],
+                zoom: 13,
+                essential: true
+              });
 
-    // Put the control into your custom container
-    document.getElementById('search-box-container').appendChild(geocoder.onAdd(map));
+              new mapboxgl.Marker({ color: '#007cbf' })
+                .setLngLat([userLng, userLat])
+                .setPopup(new mapboxgl.Popup().setText("You are here 📍"))
+                .addTo(map);
 
-    // Optional: when a result is chosen, set destination in Directions if visible
-    geocoder.on('result', (e) => {
-      if (directionsControl) {
-        const c = e.result && e.result.center;
-        if (Array.isArray(c)) directionsControl.setDestination(c);
-      }
-    });
-    // ---------- END GEOCODER ----------
+              if (directionsControl) {
+                directionsControl.setOrigin([userLng, userLat]);
+              }
+            },
+            function (error) {
+              alert('Geolocation failed or was denied.');
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
+        } else {
+          alert("Your browser doesn't support geolocation.");
+        }
+      });
+
+      // --- INTERACTION CODE STARTS HERE ---
+      map.on('style.load', () => {
+        // List of marker layers
+        const markerLayers = [
+          'medium-airports',
+          'cities',
+          'large-airports',
+          'team-hotels',
+          'team-training-facilities',
+          'stadiums',
+          'ULAZI U STADION',
+          'ULAZ U STADION'
+        ];
+
+        document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
+          const selectedKeyword = e.target.value;
+
+          if (!map.getLayer('stadiums')) return;
+
+          if (selectedKeyword === 'all') {
+            map.setFilter('stadiums', null);
+          } else {
+            map.setFilter('stadiums', ['==', ['get', 'address'], selectedKeyword]);
+            }
+        });
+        
+        // List of polygon layers
+        const polygonLayers = [
+          'PARKING',
+          'PARKINZI'
+        ];
+
+        // Helper function to add interactions if layer exists
+        function addLayerInteractionsIfExists(layerId, isPolygon = false) {
+          if (!map.getLayer(layerId)) {
+            console.log(`Layer ${layerId} does not exist in the map style`);
+            return false;
+          }
+          
+          // Click: Show popup with feature properties
+          map.addInteraction(`${layerId}-click`, {
+            type: 'click',
+            target: { layerId },
+            handler: ({ feature }) => {
+              let coordinates;
+              
+              if (isPolygon) {
+                // For polygons, use the first coordinate for the popup
+                coordinates = feature.geometry.type === 'Polygon'
+                  ? feature.geometry.coordinates[0][0]
+                  : feature.geometry.coordinates;
+              } else {
+                coordinates = feature.geometry.coordinates;
+              }
+              
+              new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(
+                  Object.entries(feature.properties)
+                    .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
+                    .join('')
+                )
+                .addTo(map);
+            }
+          });
+
+          // Hover: Highlight feature
+          map.addInteraction(`${layerId}-mouseenter`, {
+            type: 'mouseenter',
+            target: { layerId },
+            handler: ({ feature }) => {
+              map.setFeatureState(feature, { highlight: true });
+              map.getCanvas().style.cursor = 'pointer';
+            }
+          });
+
+          map.addInteraction(`${layerId}-mouseleave`, {
+            type: 'mouseleave',
+            target: { layerId },
+            handler: ({ feature }) => {
+              map.setFeatureState(feature, { highlight: false });
+              map.getCanvas().style.cursor = '';
+              return false;
+            }
+          });
+          
+          return true;
+        }
+
+        // Add interactions for marker layers that exist
+        markerLayers.forEach(layerId => {
+          addLayerInteractionsIfExists(layerId, false);
+        });
+
+        // Add interactions for polygon layers that exist
+        polygonLayers.forEach(layerId => {
+          addLayerInteractionsIfExists(layerId, true);
+        });
+      });
+      // --- INTERACTION CODE ENDS HERE ---
+      
+      const searchBox = new mapboxsearch.MapboxSearchBox();
+      searchBox.accessToken = mapboxAccessToken;
+      searchBox.options = { proximity: [-103.213, 39.176] };
+      searchBox.mapboxgl = mapboxgl;
+      searchBox.marker = true;
+      searchBox.bindMap(map);
+      document.getElementById('search-box-container').appendChild(searchBox);
+    };
   </script>
 </body>
 </html>
-
