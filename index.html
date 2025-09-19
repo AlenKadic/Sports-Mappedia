@@ -140,26 +140,26 @@
       // --- INTERACTION CODE STARTS HERE ---
       map.on('style.load', () => {
         const markerLayers = [
-          'Sports Mappedia - Games',
-          'Sports Mappedia - Stadium Gates',
-          'Sports Mappedia - Stadiums',
-          'Sports Mappedia - Airports',
-          'Sports Mappedia - Team Hotels',
-          'Sports Mappedia - Team Training Facilities',
-          'Sports Mappedia - Cities'
+          'Games',
+          'Stadium Gates',
+          'Stadiums',
+          'Airports',
+          'Team Hotels',
+          'Team Training Facilities',
+          'Cities'
         ];
 
         document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
           const selectedKeyword = e.target.value;
-          if (!map.getLayer('Sports Mappedia - Stadiums')) return;
+          if (!map.getLayer('Stadiums')) return;
           if (selectedKeyword === 'all') {
-            map.setFilter('Sports Mappedia - Stadiums', null);
+            map.setFilter('Stadiums', null);
           } else {
-            map.setFilter('Sports Mappedia - Stadiums', ['==', ['get', 'address'], selectedKeyword]);
+            map.setFilter('Stadiums', ['==', ['get', 'address'], selectedKeyword]);
           }
         });
 
-        const polygonLayers = ['Sports Mappedia - Stadium Parking'];
+        const polygonLayers = ['Stadium Parking'];
 
         function addLayerInteractionsIfExists(layerId, isPolygon = false) {
           if (!map.getLayer(layerId)) {
@@ -233,4 +233,6 @@
   </script>
 </body>
 </html>
+
+
 
