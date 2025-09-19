@@ -86,7 +86,7 @@
       mapboxgl.accessToken = mapboxAccessToken;
       const map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/alenkadic/cmaofhegm00i401s53pjvatmf',
+        style: 'mapbox://styles/alenkadic/cmfrcxynq008g01s959qa0olo',
         center: [-103.213, 39.176],
         zoom: 3
       });
@@ -140,27 +140,26 @@
       // --- INTERACTION CODE STARTS HERE ---
       map.on('style.load', () => {
         const markerLayers = [
-          'medium-airports',
-          'cities',
-          'large-airports',
-          'team-hotels',
-          'team-training-facilities',
-          'stadiums',
-          'ULAZI U STADION',
-          'ULAZ U STADION'
+          'Sports Mappedia – Games',
+          'Sports Mappedia – Stadium Gates',
+          'Sports Mappedia – Stadiums',
+          'Sports Mappedia – Airports',
+          'Sports Mappedia – Team Hotels',
+          'Sports Mappedia – Team Training Facilities',
+          'Sports Mappedia – Cities'
         ];
 
         document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
           const selectedKeyword = e.target.value;
-          if (!map.getLayer('stadiums')) return;
+          if (!map.getLayer('Sports Mappedia – Stadiums')) return;
           if (selectedKeyword === 'all') {
-            map.setFilter('stadiums', null);
+            map.setFilter('Sports Mappedia – Stadiums', null);
           } else {
-            map.setFilter('stadiums', ['==', ['get', 'address'], selectedKeyword]);
+            map.setFilter('Sports Mappedia – Stadiums', ['==', ['get', 'address'], selectedKeyword]);
           }
         });
 
-        const polygonLayers = ['PARKING', 'PARKINZI'];
+        const polygonLayers = ['Sports Mappedia – Stadium Parking'];
 
         function addLayerInteractionsIfExists(layerId, isPolygon = false) {
           if (!map.getLayer(layerId)) {
