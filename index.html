@@ -137,9 +137,10 @@
         }
       });
 
-      // --- INTERACTION CODE STARTS HERE ---
+      // --- INTERACTION CODE (robust, no addInteraction) ---
       map.on('style.load', () => {
-        const markerLayers = [
+        // Your intended layer names:
+        const markerNames = [
           'Games',
           'Stadium Parking',
           'Stadium Gates',
@@ -149,75 +150,62 @@
           'Team Training Facilities',
           'Cities'
         ];
+        const polygonNames = ['Stadium Parking'];
 
-        document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
-          const selectedKeyword = e.target.value;
-          if (!map.getLayer('Stadiums')) return;
-          if (selectedKeyword === 'all') {
-            map.setFilter('Stadiums', null);
-          } else {
-            map.setFilter('Stadiums', ['==', ['get', 'address'], selectedKeyword]);
+        // Resolve friendly names to actual style layer IDs (handles tiny mismatches)
+        const styleLayers = map.getStyle().layers.map(l => l.id);
+        const resolveId = (name) => {
+          if (styleLayers.includes(name)) return name;
+          const hit = styleLayers.find(id => id.toLowerCase() === name.toLowerCase())
+                    || styleLayers.find(id => id.toLowerCase().includes(name.toLowerCase()));
+          return hit || name; // if not found, return original (won't bind events)
+        };
+
+        const markerLayers = markerNames.map(resolveId);
+        const polygonLayers = polygonNames.map(resolveId);
+
+        // Ensure layers are visible
+        [...markerLayers, ...polygonLayers].forEach(id => {
+          if (map.getLayer(id)) {
+            const vis = map.getLayoutProperty(id, 'visibility');
+            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
           }
         });
 
-        const polygonLayers = ['Stadium Parking'];
-
-        function addLayerInteractionsIfExists(layerId, isPolygon = false) {
-          if (!map.getLayer(layerId)) {
-            console.log(`Layer ${layerId} does not exist in the map style`);
-            return false;
+        // Stadium filter (by 'address' field); uses resolved layer ID
+        const STADIUM_LAYER = resolveId('Stadiums');
+        document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
+          const selectedKeyword = e.target.value;
+          if (!map.getLayer(STADIUM_LAYER)) return;
+          if (selectedKeyword === 'all') {
+            map.setFilter(STADIUM_LAYER, null);
+          } else {
+            map.setFilter(STADIUM_LAYER, ['==', ['get', 'address'], selectedKeyword]);
           }
+        });
 
-          map.addInteraction(`${layerId}-click`, {
-            type: 'click',
-            target: { layerId },
-            handler: ({ feature }) => {
-              let coordinates;
-              if (isPolygon) {
-                coordinates = feature.geometry.type === 'Polygon'
-                  ? feature.geometry.coordinates[0][0]
-                  : feature.geometry.coordinates;
-              } else {
-                coordinates = feature.geometry.coordinates;
-              }
+        // Attach GL JS events (click / hover)
+        function bindLayerHandlers(layerId, isPolygon) {
+          if (!map.getLayer(layerId)) return;
 
-              new mapboxgl.Popup()
-                .setLngLat(coordinates)
-                .setHTML(
-                  Object.entries(feature.properties)
-                    .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`)
-                    .join('')
-                )
-                .addTo(map);
-            }
+          // Click → popup
+          map.on('click', layerId, (e) => {
+            // Use click location for popup anchor (works for points & polygons)
+            const ll = e.lngLat;
+            const html = Object.entries(e.features[0].properties || {})
+              .map(([k, v]) => `<div><b>${k}</b>: ${v}</div>`).join('');
+            new mapboxgl.Popup().setLngLat(ll).setHTML(html || '(no data)').addTo(map);
           });
 
-          map.addInteraction(`${layerId}-mouseenter`, {
-            type: 'mouseenter',
-            target: { layerId },
-            handler: ({ feature }) => {
-              map.setFeatureState(feature, { highlight: true });
-              map.getCanvas().style.cursor = 'pointer';
-            }
-          });
-
-          map.addInteraction(`${layerId}-mouseleave`, {
-            type: 'mouseleave',
-            target: { layerId },
-            handler: ({ feature }) => {
-              map.setFeatureState(feature, { highlight: false });
-              map.getCanvas().style.cursor = '';
-              return false;
-            }
-          });
-
-          return true;
+          // Hover cursor
+          map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+          map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
         }
 
-        markerLayers.forEach(layerId => addLayerInteractionsIfExists(layerId, false));
-        polygonLayers.forEach(layerId => addLayerInteractionsIfExists(layerId, true));
+        markerLayers.forEach(id => bindLayerHandlers(id, false));
+        polygonLayers.forEach(id => bindLayerHandlers(id, true));
       });
-      // --- INTERACTION CODE ENDS HERE ---
+      // --- END INTERACTION CODE ---
 
       // REPLACED: MapboxSearchBox -> MapboxGeocoder (Geocoding API)
       const geocoder = new mapboxsearch.MapboxGeocoder();
@@ -234,6 +222,7 @@
   </script>
 </body>
 </html>
+
 
 
 
