@@ -22,7 +22,7 @@
 
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
 
-    /* Search/Filter panel — now in brand blue (#0057B8) */
+    /* Search/Filter panel — brand blue (#0057B8) */
     #finder {
       position: absolute; z-index: 30; top: 5px; right: 10px; width: 340px;
       background:#0057B8; border:1px solid #004a9f; border-radius:10px;
@@ -37,6 +37,10 @@
       display:flex; align-items:center; justify-content:space-between; line-height:1.2;
       color:#fff;
     }
+    /* Title + tiny icon group */
+    #finder .finder-left { display:flex; align-items:center; gap:8px; }
+    #finder .finder-icon { width:18px; height:18px; object-fit:contain; border-radius:3px; }
+
     #finder .body { padding:10px 12px; }
     #finder label { color:#fff; }
     #finder .muted { color:rgba(255,255,255,.85); }
@@ -70,7 +74,7 @@
       #finder { top: auto; right: 10px; bottom: 55px; width: calc(100% - 20px); }
     }
 
-    /* Welcome Gate (full-screen) — now brand blue background */
+    /* Welcome Gate (full-screen) — brand blue */
     #welcome-gate {
       position: fixed; inset: 0; background:#0057B8;
       display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -121,7 +125,10 @@
   <!-- CSV Search/Filter panel -->
   <div id="finder">
     <header>
-      <span>Search & Filter</span>
+      <div class="finder-left">
+        <span>Search & Filter</span>
+        <img src="sports-mappedia-head.png" alt="" class="finder-icon" />
+      </div>
       <button id="f-toggle" type="button" aria-expanded="true" aria-controls="finder-body">Hide</button>
     </header>
     <div id="finder-body" class="body">
@@ -578,6 +585,3 @@
   </script>
 </body>
 </html>
-
-
-
