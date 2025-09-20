@@ -32,10 +32,6 @@
 
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
 
-    #stadium-address-filter {
-      position: absolute; top: 10px; right: 150px; z-index: 10; padding: 10px;
-    }
-
     /* Search/Filter panel (CSV) */
     #finder {
       position: absolute; z-index: 30; top: 60px; right: 10px; width: 340px;
@@ -57,7 +53,6 @@
       #toggle-directions { top: auto; bottom: 70px; left: 25%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       #geolocate-button { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
-      #stadium-address-filter { top: auto; bottom: 70px; right: 10%; z-index: 10; padding: 10px; }
       #finder { top: auto; bottom: 110px; right: 10px; width: calc(100% - 20px); }
     }
   </style>
@@ -66,13 +61,6 @@
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
-
-  <select id="stadium-address-filter">
-    <option value="all">All Teams</option>
-    <option value="USA">USA</option>
-    <option value="Canada">Canada</option>
-    <option value="Mexico">Mexico</option>
-  </select>
 
   <!-- CSV Search/Filter panel -->
   <div id="finder">
@@ -191,19 +179,8 @@
           }
         });
 
-        const STADIUM_LAYER = resolveId('Stadiums');
-        document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
-          const selectedKeyword = e.target.value;
-          if (!map.getLayer(STADIUM_LAYER)) return;
-          if (selectedKeyword === 'all') {
-            map.setFilter(STADIUM_LAYER, null);
-          } else {
-            map.setFilter(STADIUM_LAYER, ['==', ['get', 'address'], selectedKeyword]);
-          }
-        });
-
         // ---------- Popup helpers & schema ----------
-        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
         function fmtMaybeLink(val) {
           const s = String(val || '');
           if (/^https?:\/\//i.test(s)) return `<a href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`;
@@ -364,8 +341,7 @@
           map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
         }
 
-        markerLayers.forEach(id => bindLayerHandlers(id));
-        polygonLayers.forEach(id => bindLayerHandlers(id));
+        [...markerLayers, ...polygonLayers].forEach(id => bindLayerHandlers(id));
       });
       // --- END INTERACTION CODE ---
 
@@ -444,7 +420,7 @@
 
         const cols = {
           Name:     findHeader(['Name', ...ALIASES.Name]),
-          Layer:    findHeader(['Layer', ...ALIASES.Layer]),   // prefer "Layer"
+          Layer:    findHeader(['Layer', ...ALIASES.Layer]),
           Latitude: findHeader(['Latitude', ...ALIASES.Latitude]),
           Longitude:findHeader(['Longitude', ...ALIASES.Longitude]),
           Address:  findHeader(['Address', ...ALIASES.Address]),
@@ -491,7 +467,7 @@
             _orig: r,                           // keep full original row
             _lat: lat, _lon: lon,               // numeric coords if available
             _nameKey: cols.Name,
-            _layerKey: cols.Layer,              // may be null — filter stays visible; just means “All” only
+            _layerKey: cols.Layer,              // filter stays visible; populated if detected
             _addrKey: cols.Address,
             _urlKey: cols.URL
           };
@@ -502,7 +478,6 @@
       function refreshLayerChoices(){
         const layerKey = fRows[0]?._layerKey;
         if (!layerKey) {
-          // no detected layer column: keep only "All"
           fLayer.innerHTML = '<option value="">All</option>';
           return;
         }
@@ -623,11 +598,5 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
