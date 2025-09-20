@@ -12,6 +12,10 @@
 
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+
+  <!-- PapaParse for optional CSV/Sheet ingestion -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -47,6 +51,43 @@
       padding: 10px;
     }
 
+    /* --- AI panel --- */
+    #ai-panel {
+      position: absolute;
+      top: 70px;
+      right: 10px;
+      z-index: 20;
+      width: 340px;
+      max-width: calc(100% - 20px);
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    #ai-panel header {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #ai-panel header h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    #ai-panel .content { padding: 10px 12px; }
+    #ai-panel label { font-size: 12px; color: #444; display: block; margin-top: 8px; }
+    #ai-panel input[type="text"], #ai-panel input[type="password"], #ai-panel textarea {
+      width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 12px;
+    }
+    #ai-panel textarea { min-height: 68px; resize: vertical; }
+    #ai-panel .row { display: flex; gap: 8px; align-items: center; }
+    #ai-panel .btn {
+      background: #111827; color: #fff; border: 0; border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer;
+    }
+    #ai-panel .btn.secondary { background: #f3f4f6; color: #111; border: 1px solid #e5e7eb; }
+    #ai-panel .muted { color: #6b7280; font-size: 11px; }
+    #ai-panel .output {
+      background: #fafafa; border: 1px solid #eee; border-radius: 8px; min-height: 64px; padding: 8px; white-space: pre-wrap; font-size: 12px;
+      max-height: 220px; overflow: auto;
+    }
+
     @media (max-width: 600px) {
       #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
       #toggle-directions {
@@ -61,6 +102,7 @@
         margin-left: 20px !important; margin-top: 10px !important;
       }
       #stadium-address-filter { top: auto; bottom: 70px; right: 10%; z-index: 10; padding: 10px; }
+      #ai-panel { top: auto; bottom: 110px; right: 10px; width: calc(100% - 20px); }
     }
   </style>
 </head>
@@ -75,6 +117,34 @@
     <option value="Canada">Canada</option>
     <option value="Mexico">Mexico</option>
   </select>
+
+  <!-- AI panel -->
+  <div id="ai-panel">
+    <header>
+      <h3>AI Data Analyst</h3>
+      <button id="ai-toggle" class="btn secondary" title="Hide">Hide</button>
+    </header>
+    <div class="content">
+      <label>OpenAI API key (stored locally)
+        <input id="ai-key" type="password" placeholder="sk-..." />
+      </label>
+      <div class="row" style="margin-top:8px">
+        <label style="flex:1">CSV / Google Sheet (published CSV) URL
+          <input id="ai-csv" type="text" placeholder="https://.../output=csv (optional)" />
+        </label>
+        <button id="ai-use-map" class="btn secondary" title="Use current map extent">Use map</button>
+      </div>
+      <label style="margin-top:6px">Question / Task
+        <textarea id="ai-q" placeholder="e.g., List stadiums in Mexico with capacity > 60k and nearest airport."></textarea>
+      </label>
+      <div class="row" style="margin-top:8px">
+        <button id="ai-run" class="btn">Analyze</button>
+        <span id="ai-status" class="muted">idle</span>
+      </div>
+      <div id="ai-out" class="output" style="margin-top:8px"></div>
+      <div class="muted" style="margin-top:6px">Tip: leave CSV empty to analyze features currently visible on the map.</div>
+    </div>
+  </div>
 
   <div id="map"></div>
 
@@ -142,7 +212,7 @@
         // Your intended layer names:
         const markerNames = [
           'Games',
-          'Stadium Parking',   // (kept in your list)
+          'Stadium Parking',   // polygon also listed here, harmless
           'Stadium Gates',
           'Stadiums',
           'Airports',
@@ -185,20 +255,12 @@
         });
 
         // ---------- Popup helpers & schema ----------
-
-        // Escape HTML
-        function esc(s) {
-          return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
-            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-          }[c]));
-        }
-        // Auto-link if value looks like a URL
+        function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
         function fmtMaybeLink(val) {
           const s = String(val || '');
           if (/^https?:\/\//i.test(s)) return `<a href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`;
           return esc(s);
         }
-        // Build Google Maps link by coords or address (coords-or-address)
         function gmapsLink(props, latKey='Latitude', lonKey='Longitude', addrKey='Address') {
           const lat = props[latKey], lon = props[lonKey];
           const addr = props[addrKey] ?? props[addrKey?.toLowerCase?.()] ?? props['address'];
@@ -211,7 +273,6 @@
           return '';
         }
 
-        // Define per-layer popup layout (key → label). Keys are case-sensitive.
         const POPUP_CONFIG = {
           'Games': {
             fields: [
@@ -221,7 +282,7 @@
               ['Time', 'Time'],
               ['Team 1', 'Team 1'],
               ['Team 2', 'Team 2'],
-              ['Game link', 'Game link', true], // auto-link if URL
+              ['Game link', 'Game link', true],
               ['Stadium', 'Stadium'],
               ['Address', 'Address'],
               ['City', 'City'],
@@ -266,7 +327,7 @@
               ['Latitude', 'Latitude'],
               ['Longitude', 'Longitude'],
               ['Capacity', 'Capacity'],
-              ['Stadium Map', 'Stadium Map', true], // link if URL
+              ['Stadium Map', 'Stadium Map', true],
               ['Description', 'Description']
             ],
             gmaps: 'coords-or-address'
@@ -320,7 +381,7 @@
               ['Longitude', 'Longitude'],
               ['Category', 'Category'],
               ['Description', 'Description'],
-              ['URL', 'Website', true] // treat as link
+              ['URL', 'Website', true]
             ],
             gmaps: 'coords-or-address'
           }
@@ -329,7 +390,6 @@
         function renderPopupHTML(layerId, props) {
           const cfg = POPUP_CONFIG[layerId] || { fields: [], gmaps: 'coords-or-address' };
           const parts = [];
-
           for (const [key, label, makeLink] of cfg.fields) {
             if (!(key in props)) continue;
             const val = props[key];
@@ -337,29 +397,21 @@
             const valueHtml = makeLink ? fmtMaybeLink(val) : esc(val);
             parts.push(`<div><b>${esc(label)}:</b> ${valueHtml}</div>`);
           }
-
-          // Google Maps link (coords-or-address)
           if (cfg.gmaps !== 'none') {
             const gm = gmapsLink(props);
             if (gm) parts.push(`<div style="margin-top:6px">${gm}</div>`);
           }
-
           return parts.join('') || '(no data)';
         }
 
-        // Attach GL JS events (click / hover)
         function bindLayerHandlers(layerId, isPolygon) {
           if (!map.getLayer(layerId)) return;
-
           map.on('click', layerId, (e) => {
             const feat = e.features && e.features[0];
             const props = (feat && feat.properties) || {};
             const html = renderPopupHTML(layerId, props);
-
-            // Anchor at click location (good for points & polygons)
             new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(html).addTo(map);
           });
-
           map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
           map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
         }
@@ -372,18 +424,133 @@
       // Geocoder (Search)
       const geocoder = new mapboxsearch.MapboxGeocoder();
       geocoder.accessToken = mapboxAccessToken;
-      geocoder.options = {
-        // Configure as needed: language, country, proximity, etc.
-        proximity: [-103.213, 39.176]
-      };
+      geocoder.options = { proximity: [-103.213, 39.176] };
       geocoder.mapboxgl = mapboxgl;
       geocoder.marker = true;
       geocoder.bindMap(map);
       document.getElementById('search-box-container').appendChild(geocoder);
+
+      // -------------- AI PANEL LOGIC --------------
+      const els = {
+        panel: document.getElementById('ai-panel'),
+        toggle: document.getElementById('ai-toggle'),
+        key: document.getElementById('ai-key'),
+        csv: document.getElementById('ai-csv'),
+        q: document.getElementById('ai-q'),
+        run: document.getElementById('ai-run'),
+        useMap: document.getElementById('ai-use-map'),
+        status: document.getElementById('ai-status'),
+        out: document.getElementById('ai-out')
+      };
+
+      // load/save key
+      els.key.value = localStorage.getItem('OPENAI_API_KEY') || '';
+      els.key.addEventListener('change', ()=> localStorage.setItem('OPENAI_API_KEY', els.key.value));
+
+      els.toggle.addEventListener('click', () => {
+        const showing = els.panel.classList.toggle('collapsed');
+        if (showing) {
+          els.panel.querySelector('.content').style.display = 'none';
+          els.toggle.textContent = 'Show';
+        } else {
+          els.panel.querySelector('.content').style.display = '';
+          els.toggle.textContent = 'Hide';
+        }
+      });
+
+      // Gather visible features (by layer) as lightweight rows
+      function collectVisibleFeatures() {
+        const bounds = map.getBounds();
+        const layers = map.getStyle().layers
+          .filter(l => ['symbol','circle','fill','line'].includes(l.type))
+          .map(l => l.id);
+        const feats = map.queryRenderedFeatures({ layers, filter: ['has', 'layer'], bbox: [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] });
+        // Compact dataset: {layerId: [{...props} ...]}
+        const byLayer = {};
+        for (const f of feats) {
+          const id = f.layer.id;
+          (byLayer[id] ||= []).push(f.properties);
+        }
+        // Limit rows per layer to keep prompt light
+        for (const k in byLayer) byLayer[k] = byLayer[k].slice(0, 250);
+        return byLayer;
+      }
+
+      // Load CSV if provided
+      async function loadCsv(url) {
+        return new Promise((resolve, reject) => {
+          Papa.parse(url, {
+            header:true, download:true, dynamicTyping:true,
+            complete: (res) => resolve(res.data.filter(r => Object.keys(r).some(k => String(r[k]||'').trim() !== ''))),
+            error: reject
+          });
+        });
+      }
+
+      async function callOpenAI(apiKey, system, user) {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini', // light & good for analysis/summaries
+            temperature: 0.2,
+            messages: [
+              { role:'system', content: system },
+              { role:'user', content: user }
+            ]
+          })
+        });
+        if (!resp.ok) throw new Error('OpenAI error ' + resp.status);
+        const data = await resp.json();
+        return data.choices?.[0]?.message?.content?.trim() || '(no response)';
+      }
+
+      let cachedMapSample = null;
+      els.useMap.addEventListener('click', () => {
+        cachedMapSample = collectVisibleFeatures();
+        els.csv.value = ''; // make it clear we're using the map view
+        els.status.textContent = 'captured current map view';
+      });
+
+      els.run.addEventListener('click', async () => {
+        try {
+          els.status.textContent = 'preparing…';
+          els.out.textContent = '';
+
+          const apiKey = els.key.value.trim();
+          if (!apiKey) { alert('Please paste your OpenAI API key.'); return; }
+
+          let dataset = null;
+          if (els.csv.value.trim()) {
+            els.status.textContent = 'loading CSV…';
+            dataset = await loadCsv(els.csv.value.trim());
+          } else {
+            els.status.textContent = 'sampling map…';
+            dataset = cachedMapSample || collectVisibleFeatures();
+          }
+
+          const question = els.q.value.trim() || 'Give me a concise overview of the dataset.';
+          const system = `You analyze geospatial tables. Be precise and concise. If coordinates are present, treat them as WGS84. If fields look like URLs, present them as links in your answer. If asked for recommendations (e.g., nearest airports), reason step-by-step but only output the final answer.`;
+          const user = `QUESTION:\n${question}\n\nDATA SAMPLE (stringified JSON):\n${JSON.stringify(dataset).slice(0, 120000)}\n\nNotes:\n- If dataset is an object, keys are map layer IDs with arrays of feature properties.\n- If it's an array, each item is a row from the CSV.`;
+
+          els.status.textContent = 'calling model…';
+          const answer = await callOpenAI(apiKey, system, user);
+          els.out.innerHTML = answer
+            .replace(/</g,'&lt;')
+            .replace(/\[(https?:\/\/[^\]\s]+)\]/g, '<a href="$1" target="_blank">$1</a>');
+          els.status.textContent = 'done';
+        } catch (e) {
+          console.error(e);
+          els.status.textContent = 'error';
+          els.out.textContent = 'Error: ' + e.message;
+        }
+      });
+      // -------------- END AI PANEL LOGIC --------------
     };
   </script>
 </body>
 </html>
+
 
 
 
