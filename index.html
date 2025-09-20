@@ -88,6 +88,15 @@
       padding:10px 14px; border-radius:10px; border:1px solid #111827;
       background:#111827; color:#fff; cursor:pointer;
     }
+
+    /* ===== Desktop-only fix: move map controls from top-right to bottom-right ===== */
+    @media (min-width: 601px) {
+      .mapboxgl-ctrl-top-right {
+        top: auto !important;
+        bottom: 10px !important;
+        right: 10px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -273,7 +282,7 @@
         [...markerLayers, ...polygonLayers].forEach(id => {
           if (map.getLayer(id)) {
             const vis = map.getLayoutProperty(id, 'visibility');
-            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
+            if (vis === 'none') map.setLayoutProperty(id, 'visible', 'visible');
           }
         });
 
@@ -585,5 +594,4 @@
   </script>
 </body>
 </html>
-
 
