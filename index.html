@@ -34,11 +34,21 @@
 
     /* Search/Filter panel (CSV) */
     #finder {
-      position: absolute; z-index: 30; top: 10px; right: 10px; width: 340px;
+      position: absolute; z-index: 30; top: 5px; right: 10px; width: 340px;
       background:#fff; border:1px solid #ddd; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12);
       font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-    #finder header { padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; position: relative; }
+
+    /* Header: now flex so the button is vertically centered */
+    #finder header {
+      padding:10px 12px;
+      border-bottom:1px solid #eee;
+      font-weight:600;
+      display:flex;
+      align-items:center;            /* centers the button vertically */
+      justify-content:space-between; /* title left, button right */
+      line-height:1.2;
+    }
     #finder .body { padding:10px 12px; }
     #finder input, #finder select, #finder button {
       font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px;
@@ -50,10 +60,11 @@
 
     /* Show/Hide toggle */
     #finder.collapsed .body { display: none; }
+    /* Removed absolute positioning so it centers in the header */
     #f-toggle {
-      position: absolute; top: 8px; right: 10px;
       background:#fff; border:1px solid #e5e7eb; border-radius:8px;
       padding:6px 10px; cursor:pointer;
+      margin-left:12px; /* breathing room from title if it wraps */
     }
     #f-toggle:hover { background:#f9fafb; }
 
@@ -62,7 +73,7 @@
       #toggle-directions { width: 45%; top: auto; bottom: 10px; left: 25%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       #geolocate-button { width: 45%; top: auto; bottom: 10px; left: 75%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
-      #finder { top: auto; bottom: 55px; right: 10px; width: calc(100% - 20px); }
+      #finder { top: 5px; bottom: auto; right: 10px; width: calc(100% - 20px); }
     }
   </style>
 </head>
@@ -74,7 +85,7 @@
   <!-- CSV Search/Filter panel -->
   <div id="finder">
     <header>
-      Search & Filter
+      <span>Search & Filter</span>
       <button id="f-toggle" type="button" aria-expanded="true" aria-controls="finder-body">Hide</button>
     </header>
     <div id="finder-body" class="body">
@@ -422,7 +433,7 @@
           Papa.parse(url, {
             header: true, download: true, dynamicTyping: false,
             complete: (res) => {
-              const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!=='')); 
+              const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!==''));
               resolve(rows);
             },
             error: reject
@@ -497,10 +508,10 @@
             }
           }
           return {
-            _orig: r,                           // keep full original row
-            _lat: lat, _lon: lon,               // numeric coords if available
+            _orig: r,
+            _lat: lat, _lon: lon,
             _nameKey: cols.Name,
-            _layerKey: cols.Layer,              // filter stays visible; populated if detected
+            _layerKey: cols.Layer,
             _addrKey: cols.Address,
             _urlKey: cols.URL
           };
@@ -529,10 +540,8 @@
         fFiltered = fRows.filter(row => {
           const o = row._orig;
 
-          // layer filter (if a layer column exists)
           const inLayer = !layerKey || !layerVal || String(o[layerKey]) === layerVal;
 
-          // full-row search: search across ALL columns
           const hay = Object.values(o).map(v => String(v ?? '').toLowerCase()).join(' • ');
           const inQ = !q || hay.includes(q);
 
@@ -563,7 +572,7 @@
 
           const gmaps = hasCoords
             ? `https://www.google.com/maps?q=${encodeURIComponent(lat+','+lon)}`
-            : (hasVal(addr) ? `https://www.google.com/maps?q=${encodeURIComponent(addr)}` : '');
+            : (addr ? `https://www.google.com/maps?q=${encodeURIComponent(addr)}` : '');
 
           const card = document.createElement('div');
           card.className = 'card';
