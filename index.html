@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
 
-  <!-- PapaParse for optional CSV/Sheet ingestion -->
+  <!-- PapaParse for CSV search/filter -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
@@ -21,88 +21,44 @@
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
     #search-box-container {
-      position: absolute;
-      z-index: 2;
-      width: 50%;
-      left: 50%;
-      margin-left: -25%;
-      top: 10px;
+      position: absolute; z-index: 2; width: 50%; left: 50%; margin-left: -25%; top: 10px;
     }
 
     #toggle-directions, #geolocate-button {
-      position: absolute;
-      z-index: 10;
-      padding: 8px 12px;
-      background-color: white;
-      border: 1px solid #ccc;
-      cursor: pointer;
+      position: absolute; z-index: 10; padding: 8px 12px; background-color: white; border: 1px solid #ccc; cursor: pointer;
     }
-
     #toggle-directions { top: 10px; left: 10px; }
     #geolocate-button { top: 10px; left: 185px; }
 
     .mapboxgl-ctrl-top-left > .mapboxgl-ctrl { margin-top: 60px !important; }
 
     #stadium-address-filter {
-      position: absolute;
-      top: 10px;
-      right: 150px;
-      z-index: 10;
-      padding: 10px;
+      position: absolute; top: 10px; right: 150px; z-index: 10; padding: 10px;
     }
 
-    /* --- AI panel --- */
-    #ai-panel {
-      position: absolute;
-      top: 70px;
-      right: 10px;
-      z-index: 20;
-      width: 340px;
-      max-width: calc(100% - 20px);
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    /* Search/Filter panel (CSV) */
+    #finder {
+      position: absolute; z-index: 30; top: 60px; right: 10px; width: 340px;
+      background:#fff; border:1px solid #ddd; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12);
+      font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-    #ai-panel header {
-      padding: 10px 12px;
-      border-bottom: 1px solid #eee;
-      display: flex; align-items: center; justify-content: space-between;
+    #finder header { padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; }
+    #finder .body { padding:10px 12px; }
+    #finder input, #finder select, #finder button {
+      font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px;
     }
-    #ai-panel header h3 { margin: 0; font-size: 14px; font-weight: 600; }
-    #ai-panel .content { padding: 10px 12px; }
-    #ai-panel label { font-size: 12px; color: #444; display: block; margin-top: 8px; }
-    #ai-panel input[type="text"], #ai-panel input[type="password"], #ai-panel textarea {
-      width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; padding: 8px; font-size: 12px;
-    }
-    #ai-panel textarea { min-height: 68px; resize: vertical; }
-    #ai-panel .row { display: flex; gap: 8px; align-items: center; }
-    #ai-panel .btn {
-      background: #111827; color: #fff; border: 0; border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer;
-    }
-    #ai-panel .btn.secondary { background: #f3f4f6; color: #111; border: 1px solid #e5e7eb; }
-    #ai-panel .muted { color: #6b7280; font-size: 11px; }
-    #ai-panel .output {
-      background: #fafafa; border: 1px solid #eee; border-radius: 8px; min-height: 64px; padding: 8px; white-space: pre-wrap; font-size: 12px;
-      max-height: 220px; overflow: auto;
-    }
+    #finder .row { display:flex; gap:8px; }
+    #finder .muted { color:#6b7280; }
+    #finder .chip { border:1px solid #e5e7eb; border-radius:9999px; padding:2px 6px; }
+    #finder .card { border:1px solid #e5e7eb; border-radius:10px; padding:8px; margin-bottom:6px; cursor:pointer; background:#fff; }
 
     @media (max-width: 600px) {
       #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
-      #toggle-directions {
-        top: auto; bottom: 70px; left: 25%; transform: translateX(-50%);
-        font-size: 16px; padding: 10px 16px;
-      }
-      #geolocate-button {
-        top: auto; bottom: 20px; left: 50%; transform: translateX(-50%);
-        font-size: 16px; padding: 10px 16px;
-      }
-      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions {
-        margin-left: 20px !important; margin-top: 10px !important;
-      }
+      #toggle-directions { top: auto; bottom: 70px; left: 25%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
+      #geolocate-button { top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
+      .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
       #stadium-address-filter { top: auto; bottom: 70px; right: 10%; z-index: 10; padding: 10px; }
-      #ai-panel { top: auto; bottom: 110px; right: 10px; width: calc(100% - 20px); }
+      #finder { top: auto; bottom: 110px; right: 10px; width: calc(100% - 20px); }
     }
   </style>
 </head>
@@ -118,31 +74,27 @@
     <option value="Mexico">Mexico</option>
   </select>
 
-  <!-- AI panel -->
-  <div id="ai-panel">
-    <header>
-      <h3>AI Data Analyst</h3>
-      <button id="ai-toggle" class="btn secondary" title="Hide">Hide</button>
-    </header>
-    <div class="content">
-      <label>OpenAI API key (stored locally)
-        <input id="ai-key" type="password" placeholder="sk-..." />
+  <!-- CSV Search/Filter panel -->
+  <div id="finder">
+    <header>Search & Filter</header>
+    <div class="body">
+      <label>Search
+        <div class="row" style="margin-top:4px;">
+          <input id="f-q" type="text" placeholder="Type name/address/notes…" style="flex:1;">
+          <button id="f-go" style="background:#f9fafb; cursor:pointer;">Search</button>
+        </div>
       </label>
-      <div class="row" style="margin-top:8px">
-        <label style="flex:1">CSV / Google Sheet (published CSV) URL
-          <input id="ai-csv" type="text" placeholder="https://.../output=csv (optional)" />
+      <div class="row" style="margin-top:8px;">
+        <label style="flex:1;">Layer
+          <!-- always present -->
+          <select id="f-layer" style="width:100%;">
+            <option value="">All</option>
+          </select>
         </label>
-        <button id="ai-use-map" class="btn secondary" title="Use current map extent">Use map</button>
+        <button id="f-reset" style="background:#fff; cursor:pointer; align-self:flex-end;">Reset</button>
       </div>
-      <label style="margin-top:6px">Question / Task
-        <textarea id="ai-q" placeholder="e.g., List stadiums in Mexico with capacity > 60k and nearest airport."></textarea>
-      </label>
-      <div class="row" style="margin-top:8px">
-        <button id="ai-run" class="btn">Analyze</button>
-        <span id="ai-status" class="muted">idle</span>
-      </div>
-      <div id="ai-out" class="output" style="margin-top:8px"></div>
-      <div class="muted" style="margin-top:6px">Tip: leave CSV empty to analyze features currently visible on the map.</div>
+      <div id="f-status" class="muted" style="margin-top:6px;">Loading data…</div>
+      <div id="f-results" style="margin-top:8px; max-height:260px; overflow:auto;"></div>
     </div>
   </div>
 
@@ -207,12 +159,11 @@
         }
       });
 
-      // --- INTERACTION CODE (robust, with custom popups) ---
+      // --- INTERACTION CODE (your popups kept unchanged) ---
       map.on('style.load', () => {
-        // Your intended layer names:
         const markerNames = [
           'Games',
-          'Stadium Parking',   // polygon also listed here, harmless
+          'Stadium Parking',
           'Stadium Gates',
           'Stadiums',
           'Airports',
@@ -222,7 +173,6 @@
         ];
         const polygonNames = ['Stadium Parking'];
 
-        // Resolve friendly names to actual style layer IDs (handles tiny mismatches)
         const styleLayers = map.getStyle().layers.map(l => l.id);
         const resolveId = (name) => {
           if (styleLayers.includes(name)) return name;
@@ -234,7 +184,6 @@
         const markerLayers = markerNames.map(resolveId);
         const polygonLayers = polygonNames.map(resolveId);
 
-        // Ensure layers are visible
         [...markerLayers, ...polygonLayers].forEach(id => {
           if (map.getLayer(id)) {
             const vis = map.getLayoutProperty(id, 'visibility');
@@ -242,7 +191,6 @@
           }
         });
 
-        // Stadium filter (by 'address' field); uses resolved layer ID
         const STADIUM_LAYER = resolveId('Stadiums');
         document.getElementById('stadium-address-filter').addEventListener('change', function (e) {
           const selectedKeyword = e.target.value;
@@ -404,7 +352,7 @@
           return parts.join('') || '(no data)';
         }
 
-        function bindLayerHandlers(layerId, isPolygon) {
+        function bindLayerHandlers(layerId) {
           if (!map.getLayer(layerId)) return;
           map.on('click', layerId, (e) => {
             const feat = e.features && e.features[0];
@@ -416,8 +364,8 @@
           map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
         }
 
-        markerLayers.forEach(id => bindLayerHandlers(id, false));
-        polygonLayers.forEach(id => bindLayerHandlers(id, true));
+        markerLayers.forEach(id => bindLayerHandlers(id));
+        polygonLayers.forEach(id => bindLayerHandlers(id));
       });
       // --- END INTERACTION CODE ---
 
@@ -430,126 +378,252 @@
       geocoder.bindMap(map);
       document.getElementById('search-box-container').appendChild(geocoder);
 
-      // -------------- AI PANEL LOGIC --------------
-      const els = {
-        panel: document.getElementById('ai-panel'),
-        toggle: document.getElementById('ai-toggle'),
-        key: document.getElementById('ai-key'),
-        csv: document.getElementById('ai-csv'),
-        q: document.getElementById('ai-q'),
-        run: document.getElementById('ai-run'),
-        useMap: document.getElementById('ai-use-map'),
-        status: document.getElementById('ai-status'),
-        out: document.getElementById('ai-out')
-      };
+      /* ===========================
+         CSV SEARCH/FILTER (schema-agnostic, Layer filter always visible)
+         =========================== */
+      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQo9I4u2eq3GUY-9K-Kopu1wRcA9-ZHI9BjEVAMs4kD8zH3PGaKmRWwm9Wcy4bTgJTFNeQrqfxcAOR8/pub?output=csv';
 
-      // load/save key
-      els.key.value = localStorage.getItem('OPENAI_API_KEY') || '';
-      els.key.addEventListener('change', ()=> localStorage.setItem('OPENAI_API_KEY', els.key.value));
+      // State
+      let fRows = [];        // normalized rows (keeps original row too)
+      let fFiltered = [];
+      let fMarker = null;
 
-      els.toggle.addEventListener('click', () => {
-        const showing = els.panel.classList.toggle('collapsed');
-        if (showing) {
-          els.panel.querySelector('.content').style.display = 'none';
-          els.toggle.textContent = 'Show';
-        } else {
-          els.panel.querySelector('.content').style.display = '';
-          els.toggle.textContent = 'Hide';
-        }
-      });
+      // DOM
+      const fQ = document.getElementById('f-q');
+      const fGo = document.getElementById('f-go');
+      const fLayer = document.getElementById('f-layer'); // ALWAYS present
+      const fReset = document.getElementById('f-reset');
+      const fStatus = document.getElementById('f-status');
+      const fResults = document.getElementById('f-results');
 
-      // Gather visible features (by layer) as lightweight rows
-      function collectVisibleFeatures() {
-        const bounds = map.getBounds();
-        const layers = map.getStyle().layers
-          .filter(l => ['symbol','circle','fill','line'].includes(l.type))
-          .map(l => l.id);
-        const feats = map.queryRenderedFeatures({ layers, filter: ['has', 'layer'], bbox: [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()] });
-        // Compact dataset: {layerId: [{...props} ...]}
-        const byLayer = {};
-        for (const f of feats) {
-          const id = f.layer.id;
-          (byLayer[id] ||= []).push(f.properties);
-        }
-        // Limit rows per layer to keep prompt light
-        for (const k in byLayer) byLayer[k] = byLayer[k].slice(0, 250);
-        return byLayer;
+      // Helpers
+      function esc2(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+      function hasVal(v){ return v !== null && v !== undefined && String(v).trim() !== ''; }
+      function toNum(x){
+        if (x == null) return NaN;
+        const s = String(x).trim().replace(',', '.'); // allow comma decimals
+        const n = Number(s);
+        return Number.isFinite(n) ? n : NaN;
       }
+      function clearMarker(){ if (fMarker) { fMarker.remove(); fMarker = null; } }
 
-      // Load CSV if provided
-      async function loadCsv(url) {
+      // CSV load
+      function loadCsv(url){
         return new Promise((resolve, reject) => {
           Papa.parse(url, {
-            header:true, download:true, dynamicTyping:true,
-            complete: (res) => resolve(res.data.filter(r => Object.keys(r).some(k => String(r[k]||'').trim() !== ''))),
+            header: true, download: true, dynamicTyping: false,
+            complete: (res) => {
+              const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!==''));
+              resolve(rows);
+            },
             error: reject
           });
         });
       }
 
-      async function callOpenAI(apiKey, system, user) {
-        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKey },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini', // light & good for analysis/summaries
-            temperature: 0.2,
-            messages: [
-              { role:'system', content: system },
-              { role:'user', content: user }
-            ]
-          })
-        });
-        if (!resp.ok) throw new Error('OpenAI error ' + resp.status);
-        const data = await resp.json();
-        return data.choices?.[0]?.message?.content?.trim() || '(no response)';
+      // Column detection
+      const ALIASES = {
+        Name: ['name','title','label','stadium','venue','poi','place'],
+        Layer: ['layer','category','type','group','sheet','tab','list'],
+        Latitude: ['latitude','lat','y','y_coord','ycoord','φ','northing','lat (y)','lat_y'],
+        Longitude: ['longitude','lon','lng','long','x','x_coord','xcoord','λ','easting','lon (x)','lon_x'],
+        Address: ['address','addr','location','street','city','town'],
+        URL: ['url','link','website','href','web']
+      };
+
+      function detectColumns(rows){
+        if (!rows.length) {
+          return {Name:null, Layer:null, Latitude:null, Longitude:null, Address:null, URL:null, _combined:null};
+        }
+        const headers = Object.keys(rows[0]).map(h => [h, h.toLowerCase()]);
+        const findHeader = (cands) => {
+          const lcands = cands.map(c => c.toLowerCase());
+          const hit = headers.find(([orig, low]) => lcands.includes(low));
+          return hit ? hit[0] : null;
+        };
+
+        const cols = {
+          Name:     findHeader(['Name', ...ALIASES.Name]),
+          Layer:    findHeader(['Layer', ...ALIASES.Layer]),   // prefer "Layer"
+          Latitude: findHeader(['Latitude', ...ALIASES.Latitude]),
+          Longitude:findHeader(['Longitude', ...ALIASES.Longitude]),
+          Address:  findHeader(['Address', ...ALIASES.Address]),
+          URL:      findHeader(['URL', ...ALIASES.URL]),
+          _combined: null
+        };
+
+        // If lat/lon missing, try to find a combined coord field
+        if (!cols.Latitude || !cols.Longitude) {
+          const combined = headers.find(([orig]) =>
+            /coord|point|location|geom|geometry|lat|lon/i.test(orig)
+          );
+          cols._combined = combined ? combined[0] : null;
+        }
+        return cols;
       }
 
-      let cachedMapSample = null;
-      els.useMap.addEventListener('click', () => {
-        cachedMapSample = collectVisibleFeatures();
-        els.csv.value = ''; // make it clear we're using the map view
-        els.status.textContent = 'captured current map view';
+      function parseCoordPair(text){
+        if (!text) return [NaN, NaN];
+        const s = String(text).trim();
+        let m = s.match(/^\s*([-+]?\d+(\.\d+)?)\s*[,;]\s*([-+]?\d+(\.\d+)?)\s*$/);
+        if (m) return [parseFloat(m[1]), parseFloat(m[3])];
+        m = s.match(/POINT\s*\(\s*([-+]?\d+(\.\d+)?)\s+([-+]?\d+(\.\d+)?)\s*\)/i);
+        if (m) return [parseFloat(m[3]), parseFloat(m[1])]; // POINT(lon lat)
+        m = s.match(/lat\s*[:=]\s*([-+]?\d+(\.\d+)?).*(lon|lng)\s*[:=]\s*([-+]?\d+(\.\d+)?)/i);
+        if (m) return [parseFloat(m[1]), parseFloat(m[4])];
+        return [NaN, NaN];
+      }
+
+      function normalize(rows){
+        const cols = detectColumns(rows);
+        return rows.map(r => {
+          let lat = cols.Latitude ? toNum(r[cols.Latitude]) : NaN;
+          let lon = cols.Longitude ? toNum(r[cols.Longitude]) : NaN;
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+            if (cols._combined) {
+              const [pLat, pLon] = parseCoordPair(r[cols._combined]);
+              if (Number.isFinite(pLat) && Number.isFinite(pLon)) {
+                lat = pLat; lon = pLon;
+              }
+            }
+          }
+          return {
+            _orig: r,                           // keep full original row
+            _lat: lat, _lon: lon,               // numeric coords if available
+            _nameKey: cols.Name,
+            _layerKey: cols.Layer,              // may be null — filter stays visible; just means “All” only
+            _addrKey: cols.Address,
+            _urlKey: cols.URL
+          };
+        });
+      }
+
+      // UI population (Layer dropdown) — ALWAYS visible
+      function refreshLayerChoices(){
+        const layerKey = fRows[0]?._layerKey;
+        if (!layerKey) {
+          // no detected layer column: keep only "All"
+          fLayer.innerHTML = '<option value="">All</option>';
+          return;
+        }
+        const layers = Array.from(new Set(
+          fRows.map(r => String(r._orig[layerKey] || '').trim()).filter(Boolean)
+        )).sort();
+        fLayer.innerHTML = '<option value="">All</option>' + layers.map(l => `<option value="${esc2(l)}">${esc2(l)}</option>`).join('');
+      }
+
+      // Filter + render
+      function applyFilter(){
+        const q = fQ.value.trim().toLowerCase();
+        const layerVal = fLayer.value;
+
+        const layerKey = fRows[0]?._layerKey;
+        fFiltered = fRows.filter(row => {
+          const o = row._orig;
+
+          // layer filter (if a layer column exists)
+          const inLayer = !layerKey || !layerVal || String(o[layerKey]) === layerVal;
+
+          // full-row search: search across ALL columns
+          const hay = Object.values(o).map(v => String(v ?? '').toLowerCase()).join(' • ');
+          const inQ = !q || hay.includes(q);
+
+          return inLayer && inQ;
+        });
+
+        renderResults();
+      }
+
+      function renderResults(){
+        fResults.innerHTML = '';
+        fStatus.textContent = `Found ${fFiltered.length} result(s)`;
+        if (!fFiltered.length) { fResults.innerHTML = '<div class="muted">No results.</div>'; return; }
+
+        const nameKey = fRows[0]?._nameKey;
+        const layerKey = fRows[0]?._layerKey;
+        const addrKey = fRows[0]?._addrKey;
+        const urlKey  = fRows[0]?._urlKey;
+
+        fFiltered.forEach(row => {
+          const o = row._orig;
+          const lat = row._lat, lon = row._lon;
+          const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+          const name = nameKey ? (o[nameKey] || 'Untitled') : (o['Name'] || 'Untitled');
+          const layer = layerKey ? o[layerKey] : (o['Layer'] ?? '');
+          const addr  = addrKey ? o[addrKey] : (o['Address'] || '');
+          const url   = urlKey  ? o[urlKey]  : (o['URL'] || '');
+
+          const gmaps = hasCoords
+            ? `https://www.google.com/maps?q=${encodeURIComponent(lat+','+lon)}`
+            : (hasVal(addr) ? `https://www.google.com/maps?q=${encodeURIComponent(addr)}` : '');
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; gap:8px;">
+              <div>
+                <div style="font-weight:600">${esc2(name)}</div>
+                <div style="margin-top:2px; font-size:11px; color:#374151;">
+                  ${layer ? `<span class="chip">${esc2(String(layer))}</span>` : ''}
+                </div>
+                ${addr ? `<div style="margin-top:4px; font-size:11px; color:#6b7280;">${esc2(addr)}</div>` : ''}
+              </div>
+              <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+                ${hasCoords ? `<span style="font-size:11px; color:#6b7280;">${lat.toFixed(5)}, ${lon.toFixed(5)}</span>` : ''}
+                ${gmaps ? `<a href="${esc2(gmaps)}" target="_blank" style="font-size:11px; color:#2563eb; text-decoration:underline;">Open in Google Maps</a>` : ''}
+                ${url ? `<a href="${esc2(url)}" target="_blank" style="font-size:11px; color:#2563eb; text-decoration:underline;">Open link</a>` : ''}
+              </div>
+            </div>
+          `;
+          card.addEventListener('click', () => {
+            clearMarker();
+            if (hasCoords) {
+              map.flyTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 12), essential: true });
+              fMarker = new mapboxgl.Marker({ color: '#111827' })
+                .setLngLat([lon, lat])
+                .setPopup(new mapboxgl.Popup().setHTML(
+                  `<div style="font:12px system-ui;"><b>${esc2(name)}</b><br>${esc2(layer||'')}${addr?'<br>'+esc2(addr):''}</div>`
+                ))
+                .addTo(map);
+            } else if (addr) {
+              alert('No coordinates for this item — opening Google Maps search in a new tab.');
+              window.open(`https://www.google.com/maps?q=${encodeURIComponent(addr)}`, '_blank');
+            }
+          });
+          fResults.appendChild(card);
+        });
+      }
+
+      // Events
+      document.getElementById('f-go').addEventListener('click', applyFilter);
+      document.getElementById('f-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilter(); });
+      document.getElementById('f-layer').addEventListener('change', applyFilter);
+      document.getElementById('f-reset').addEventListener('click', () => {
+        document.getElementById('f-q').value = '';
+        document.getElementById('f-layer').value = '';
+        applyFilter();
+        clearMarker();
       });
 
-      els.run.addEventListener('click', async () => {
+      // Boot
+      (async () => {
         try {
-          els.status.textContent = 'preparing…';
-          els.out.textContent = '';
-
-          const apiKey = els.key.value.trim();
-          if (!apiKey) { alert('Please paste your OpenAI API key.'); return; }
-
-          let dataset = null;
-          if (els.csv.value.trim()) {
-            els.status.textContent = 'loading CSV…';
-            dataset = await loadCsv(els.csv.value.trim());
-          } else {
-            els.status.textContent = 'sampling map…';
-            dataset = cachedMapSample || collectVisibleFeatures();
-          }
-
-          const question = els.q.value.trim() || 'Give me a concise overview of the dataset.';
-          const system = `You analyze geospatial tables. Be precise and concise. If coordinates are present, treat them as WGS84. If fields look like URLs, present them as links in your answer. If asked for recommendations (e.g., nearest airports), reason step-by-step but only output the final answer.`;
-          const user = `QUESTION:\n${question}\n\nDATA SAMPLE (stringified JSON):\n${JSON.stringify(dataset).slice(0, 120000)}\n\nNotes:\n- If dataset is an object, keys are map layer IDs with arrays of feature properties.\n- If it's an array, each item is a row from the CSV.`;
-
-          els.status.textContent = 'calling model…';
-          const answer = await callOpenAI(apiKey, system, user);
-          els.out.innerHTML = answer
-            .replace(/</g,'&lt;')
-            .replace(/\[(https?:\/\/[^\]\s]+)\]/g, '<a href="$1" target="_blank">$1</a>');
-          els.status.textContent = 'done';
+          fStatus.textContent = 'Loading data…';
+          const raw = await loadCsv(CSV_URL);
+          fRows = normalize(raw);
+          refreshLayerChoices(); // dropdown always present; filled if detected
+          fStatus.textContent = 'Ready — type a query and press Search';
         } catch (e) {
           console.error(e);
-          els.status.textContent = 'error';
-          els.out.textContent = 'Error: ' + e.message;
+          fStatus.textContent = 'Failed to load CSV — check link & publish settings';
         }
-      });
-      // -------------- END AI PANEL LOGIC --------------
+      })();
+      /* ============ END CSV SEARCH/FILTER ============ */
     };
   </script>
 </body>
 </html>
+
 
 
 
