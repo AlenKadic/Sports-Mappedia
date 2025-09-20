@@ -38,7 +38,7 @@
       background:#fff; border:1px solid #ddd; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12);
       font:12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
-    #finder header { padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; }
+    #finder header { padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; position: relative; }
     #finder .body { padding:10px 12px; }
     #finder input, #finder select, #finder button {
       font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px;
@@ -47,6 +47,15 @@
     #finder .muted { color:#6b7280; }
     #finder .chip { border:1px solid #e5e7eb; border-radius:9999px; padding:2px 6px; }
     #finder .card { border:1px solid #e5e7eb; border-radius:10px; padding:8px; margin-bottom:6px; cursor:pointer; background:#fff; }
+
+    /* Show/Hide toggle */
+    #finder.collapsed .body { display: none; }
+    #f-toggle {
+      position: absolute; top: 8px; right: 10px;
+      background:#fff; border:1px solid #e5e7eb; border-radius:8px;
+      padding:6px 10px; cursor:pointer;
+    }
+    #f-toggle:hover { background:#f9fafb; }
 
     @media (max-width: 600px) {
       #search-box-container { width: 80%; margin-left: -45%; top: 10px; }
@@ -64,8 +73,11 @@
 
   <!-- CSV Search/Filter panel -->
   <div id="finder">
-    <header>Search & Filter</header>
-    <div class="body">
+    <header>
+      Search & Filter
+      <button id="f-toggle" type="button" aria-expanded="true" aria-controls="finder-body">Hide</button>
+    </header>
+    <div id="finder-body" class="body">
       <label>Search
         <div class="row" style="margin-top:4px;">
           <input id="f-q" type="text" placeholder="Type country/city/stadium..." style="flex:1;">
@@ -372,6 +384,27 @@
       const fStatus = document.getElementById('f-status');
       const fResults = document.getElementById('f-results');
 
+      // Finder container + toggle
+      const finder = document.getElementById('finder');
+      const fToggle = document.getElementById('f-toggle');
+      const finderBody = document.getElementById('finder-body');
+
+      // Restore previous collapsed state
+      const savedCollapsed = localStorage.getItem('finderCollapsed') === 'true';
+      if (savedCollapsed) {
+        finder.classList.add('collapsed');
+        fToggle.textContent = 'Show';
+        fToggle.setAttribute('aria-expanded', 'false');
+      }
+
+      // Toggle handler
+      fToggle.addEventListener('click', () => {
+        const collapsed = finder.classList.toggle('collapsed');
+        fToggle.textContent = collapsed ? 'Show' : 'Hide';
+        fToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        localStorage.setItem('finderCollapsed', String(collapsed));
+      });
+
       // Helpers
       function esc2(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
       function hasVal(v){ return v !== null && v !== undefined && String(v).trim() !== ''; }
@@ -389,7 +422,7 @@
           Papa.parse(url, {
             header: true, download: true, dynamicTyping: false,
             complete: (res) => {
-              const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!==''));
+              const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!=='')); 
               resolve(rows);
             },
             error: reject
@@ -583,14 +616,15 @@
       // Boot
       (async () => {
         try {
-          fStatus.textContent = 'Loading data…';
+          const fStatusEl = document.getElementById('f-status');
+          fStatusEl.textContent = 'Loading data…';
           const raw = await loadCsv(CSV_URL);
           fRows = normalize(raw);
           refreshLayerChoices(); // dropdown always present; filled if detected
-          fStatus.textContent = 'Ready — type a query and press Search';
+          fStatusEl.textContent = 'Ready — type a query and press Search';
         } catch (e) {
           console.error(e);
-          fStatus.textContent = 'Failed to load CSV — check link & publish settings';
+          document.getElementById('f-status').textContent = 'Failed to load CSV — check link & publish settings';
         }
       })();
       /* ============ END CSV SEARCH/FILTER ============ */
@@ -598,6 +632,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
