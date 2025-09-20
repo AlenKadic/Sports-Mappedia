@@ -1,20 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>My Mapbox Studio Map with Directions</title>
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
-
-  <!-- Mapbox Search JS (provides MapboxGeocoder custom element/class) -->
-  <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.3.0/web.js"></script>
-
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css">
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-
-  <!-- PapaParse for CSV search/filter -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <meta charset="utf-8" />
+  <title>Sports Mappedia</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <!-- We intentionally don't include Mapbox/PapaParse here; they load after "Open the map". -->
 
   <style>
     body { margin: 0; padding: 0; }
@@ -41,18 +31,11 @@
 
     /* Header flex so Hide/Show centers vertically */
     #finder header {
-      padding:10px 12px;
-      border-bottom:1px solid #eee;
-      font-weight:600;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      line-height:1.2;
+      padding:10px 12px; border-bottom:1px solid #eee; font-weight:600;
+      display:flex; align-items:center; justify-content:space-between; line-height:1.2;
     }
     #finder .body { padding:10px 12px; }
-    #finder input, #finder select, #finder button {
-      font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px;
-    }
+    #finder input, #finder select, #finder button { font:12px inherit; border:1px solid #ddd; border-radius:8px; padding:8px; }
     #finder .row { display:flex; gap:8px; }
     #finder .muted { color:#6b7280; }
     #finder .chip { border:1px solid #e5e7eb; border-radius:9999px; padding:2px 6px; }
@@ -73,13 +56,49 @@
       #geolocate-button { width: 45%; top: auto; bottom: 10px; left: 75%; transform: translateX(-50%); font-size: 16px; padding: 10px 16px; }
       .mapboxgl-ctrl-top-left > .mapboxgl-ctrl-directions { margin-left: 20px !important; margin-top: 10px !important; }
 
-      #finder {
-        top: auto; right: 10px; bottom: 55px; width: calc(100% - 20px);
-      }
+      #finder { top: auto; right: 10px; bottom: 55px; width: calc(100% - 20px); }
+    }
+
+    /* Welcome Gate (full-screen) */
+    #welcome-gate {
+      position: fixed; inset: 0; background: radial-gradient(1200px 1200px at 50% 30%, #0b1220 0%, #060a14 60%, #02050a 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+    }
+    #welcome-card {
+      width: min(560px, 92vw); background: #fff; border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px;
+    }
+    #welcome-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    #wg-open {
+      padding:10px 14px; border-radius:10px; border:1px solid #111827;
+      background:#111827; color:#fff; cursor:pointer;
     }
   </style>
 </head>
 <body>
+  <!-- Welcome gate (logo + message + button) -->
+  <div id="welcome-gate">
+    <div id="welcome-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <!-- Update the src if you host the logo elsewhere -->
+        <img src="sports-mappedia-logo.png" alt="Sports Mappedia logo: Luna" style="height:56px;width:auto;border-radius:8px;" />
+        <h1 style="margin:0;font:700 20px/1.2 system-ui, -apple-system, Segoe UI, Roboto;letter-spacing:.2px;">Sports Mappedia</h1>
+      </div>
+      <p style="margin:0 0 16px 0;color:#374151;">
+        This is unofficial fan created GIS hub for Sports events.<br>
+        My name is <b>Luna</b> and click &quot;Open the map&quot; so I can help you find your way around.
+      </p>
+      <div id="welcome-actions">
+        <label style="display:flex; align-items:center; gap:8px; color:#374151;">
+          <input id="wg-remember" type="checkbox" checked /> Remember for 24 hours
+        </label>
+        <button id="wg-open">Open the map</button>
+      </div>
+      <div id="wg-loading" style="display:none;margin-top:12px;color:#6b7280;font-size:12px;">Loading map…</div>
+    </div>
+  </div>
+
+  <!-- Existing UI containers -->
   <div id="search-box-container"></div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
@@ -109,8 +128,7 @@
       <!-- Auto-hide toggle -->
       <div class="row" style="margin-top:8px; align-items:center;">
         <label style="display:flex; align-items:center; gap:6px;">
-          <input id="f-auto-hide" type="checkbox">
-          Auto-hide on select
+          <input id="f-auto-hide" type="checkbox"> Auto-hide on select
         </label>
       </div>
 
@@ -121,9 +139,53 @@
 
   <div id="map"></div>
 
+  <!-- Lazy loader + app bootstrap -->
   <script>
-    const script = document.getElementById('search-js');
-    script.onload = function () {
+    // URLs to lazy-load (Mapbox + plugins + PapaParse)
+    const CSS_URLS = [
+      "https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css",
+      "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css"
+    ];
+    const JS_URLS = [
+      "https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js",
+      "https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js",
+      "https://api.mapbox.com/search-js/v1.3.0/web.js",
+      "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"
+    ];
+
+    function loadCss(href) {
+      return new Promise((res, rej) => {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = href;
+        l.onload = res;
+        l.onerror = () => rej(new Error('CSS failed: ' + href));
+        document.head.appendChild(l);
+      });
+    }
+
+    function loadScript(src) {
+      return new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        s.onload = res;
+        s.onerror = () => rej(new Error('JS failed: ' + src));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function lazyLoadMapDeps() {
+      await Promise.all(CSS_URLS.map(loadCss));        // CSS in parallel
+      for (const src of JS_URLS) {                     // JS in sequence
+        await loadScript(src);
+      }
+    }
+
+    // =======================
+    // Your app (moved here)
+    // =======================
+    function initMapApp() {
       const mapboxAccessToken = 'pk.eyJ1IjoiYWxlbmthZGljIiwiYSI6ImNtYW9iYzJtYTA1Ym8ya3NsbWNjanI0Ym4ifQ.e5NmEpb-fTD-6remlEm5rA';
 
       mapboxgl.accessToken = mapboxAccessToken;
@@ -180,7 +242,7 @@
         }
       });
 
-      // --- INTERACTION CODE (your popups kept unchanged) ---
+      // --- INTERACTION CODE ---
       map.on('style.load', () => {
         const markerNames = [
           'Games',
@@ -212,7 +274,6 @@
           }
         });
 
-        // ---------- Popup helpers & schema ----------
         function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&gt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
         function fmtMaybeLink(val) {
           const s = String(val || '');
@@ -234,112 +295,72 @@
         const POPUP_CONFIG = {
           'Games': {
             fields: [
-              ['Name', 'Stadium'],
-              ['Round', 'Round'],
-              ['Date', 'Date'],
-              ['Time', 'Time'],
-              ['Team 1', 'Team 1'],
-              ['Team 2', 'Team 2'],
-              ['Game link', 'Game link', true],
-              ['Stadium', 'Stadium'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['Capacity', 'Capacity'],
-              ['Description', 'Description']
+              ['Name', 'Stadium'], ['Round', 'Round'], ['Date', 'Date'], ['Time', 'Time'],
+              ['Team 1', 'Team 1'], ['Team 2', 'Team 2'], ['Game link', 'Game link', true],
+              ['Stadium', 'Stadium'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['Capacity', 'Capacity'], ['Description', 'Description']
             ],
             gmaps: 'coords-or-address'
           },
           'Stadium Parking': {
             fields: [
-              ['Name', 'Name'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['(Optimal) Sector', '(Optimal) Sector'],
-              ['(Optimal) Gate', '(Optimal) Gate'],
+              ['Name', 'Name'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['(Optimal) Sector', '(Optimal) Sector'], ['(Optimal) Gate', '(Optimal) Gate'],
               ['Description', 'Description']
             ],
             gmaps: 'coords-or-address'
           },
           'Stadium Gates': {
             fields: [
-              ['Name', 'Name'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['(Optimal) Sector', '(Optimal) Sector'],
-              ['(Optimal) Parking', '(Optimal) Parking'],
+              ['Name', 'Name'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['(Optimal) Sector', '(Optimal) Sector'], ['(Optimal) Parking', '(Optimal) Parking'],
               ['Description', 'Description']
             ],
             gmaps: 'coords-or-address'
           },
           'Stadiums': {
             fields: [
-              ['Name', 'Name'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['Capacity', 'Capacity'],
-              ['Stadium Map', 'Stadium Map', true],
+              ['Name', 'Name'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['Capacity', 'Capacity'], ['Stadium Map', 'Stadium Map', true],
               ['Description', 'Description']
             ],
             gmaps: 'coords-or-address'
           },
           'Airports': {
             fields: [
-              ['Name', 'Name'],
-              ['Airport_Ident', 'Airport Code'],
-              ['Airport_Type', 'Airport size'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['City_1', 'Nearby City 1'],
-              ['Distance_Miles_1', 'Miles to Nearby City 1'],
-              ['City_2', 'Nearby City 2'],
-              ['Distance_Miles_2', 'Miles to Nearby City 2'],
-              ['City_3', 'Nearby City 3'],
-              ['Distance_Miles_3', 'Miles to Nearby City 3'],
-              ['City_4', 'Nearby City 4'],
-              ['Distance_Miles_4', 'Miles to Nearby City 4']
+              ['Name', 'Name'], ['Airport_Ident', 'Airport Code'], ['Airport_Type', 'Airport size'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['City_1', 'Nearby City 1'], ['Distance_Miles_1', 'Miles to Nearby City 1'],
+              ['City_2', 'Nearby City 2'], ['Distance_Miles_2', 'Miles to Nearby City 2'],
+              ['City_3', 'Nearby City 3'], ['Distance_Miles_3', 'Miles to Nearby City 3'],
+              ['City_4', 'Nearby City 4'], ['Distance_Miles_4', 'Miles to Nearby City 4']
             ],
             gmaps: 'coords-or-address'
           },
           'Team Hotels': {
             fields: [
-              ['Name', 'Name'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['Team', 'Team'],
-              ['Paired Training Facility', 'Paired Training Facility']
+              ['Name', 'Name'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['Team', 'Team'], ['Paired Training Facility', 'Paired Training Facility']
             ],
             gmaps: 'coords-or-address'
           },
           'Team Training Facilities': {
             fields: [
-              ['Name', 'Name'],
-              ['Address', 'Address'],
-              ['City', 'City'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['Team', 'Team'],
-              ['Paired Hotel', 'Paired Hotel']
+              ['Name', 'Name'], ['Address', 'Address'], ['City', 'City'],
+              ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['Team', 'Team'], ['Paired Hotel', 'Paired Hotel']
             ],
             gmaps: 'coords-or-address'
           },
           'Cities': {
             fields: [
-              ['Name', 'Name'],
-              ['Latitude', 'Latitude'],
-              ['Longitude', 'Longitude'],
-              ['Category', 'Category'],
-              ['Description', 'Description'],
-              ['URL', 'Website', true]
+              ['Name', 'Name'], ['Latitude', 'Latitude'], ['Longitude', 'Longitude'],
+              ['Category', 'Category'], ['Description', 'Description'], ['URL', 'Website', true]
             ],
             gmaps: 'coords-or-address'
           }
@@ -376,7 +397,6 @@
 
         [...markerLayers, ...polygonLayers].forEach(id => bindLayerHandlers(id));
       });
-      // --- END INTERACTION CODE ---
 
       // Geocoder (Search)
       const geocoder = new mapboxsearch.MapboxGeocoder();
@@ -502,11 +522,8 @@
           _combined: null
         };
 
-        // If lat/lon missing, try to find a combined coord field
         if (!cols.Latitude || !cols.Longitude) {
-          const combined = headers.find(([orig]) =>
-            /coord|point|location|geom|geometry|lat|lon/i.test(orig)
-          );
+          const combined = headers.find(([orig]) => /coord|point|location|geom|geometry|lat|lon/i.test(orig));
           cols._combined = combined ? combined[0] : null;
         }
         return cols;
@@ -532,49 +549,35 @@
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
             if (cols._combined) {
               const [pLat, pLon] = parseCoordPair(r[cols._combined]);
-              if (Number.isFinite(pLat) && Number.isFinite(pLon)) {
-                lat = pLat; lon = pLon;
-              }
+              if (Number.isFinite(pLat) && Number.isFinite(pLon)) { lat = pLat; lon = pLon; }
             }
           }
           return {
-            _orig: r,                           // keep full original row
-            _lat: lat, _lon: lon,               // numeric coords if available
-            _nameKey: cols.Name,
-            _layerKey: cols.Layer,              // filter stays visible; populated if detected
-            _addrKey: cols.Address,
-            _urlKey: cols.URL
+            _orig: r, _lat: lat, _lon: lon,
+            _nameKey: cols.Name, _layerKey: cols.Layer, _addrKey: cols.Address, _urlKey: cols.URL
           };
         });
       }
 
-      // UI population (Layer dropdown)
       function refreshLayerChoices(){
         const layerKey = fRows[0]?._layerKey;
-        if (!layerKey) {
-          fLayer.innerHTML = '<option value="">All</option>';
-          return;
-        }
+        if (!layerKey) { fLayer.innerHTML = '<option value="">All</option>'; return; }
         const layers = Array.from(new Set(
           fRows.map(r => String(r._orig[layerKey] || '').trim()).filter(Boolean)
         )).sort();
         fLayer.innerHTML = '<option value="">All</option>' + layers.map(l => `<option value="${esc2(l)}">${esc2(l)}</option>`).join('');
       }
 
-      // Filter + render
       function applyFilter(){
         const q = fQ.value.trim().toLowerCase();
         const layerVal = fLayer.value;
-
         const layerKey = fRows[0]?._layerKey;
+
         fFiltered = fRows.filter(row => {
           const o = row._orig;
-
           const inLayer = !layerKey || !layerVal || String(o[layerKey]) === layerVal;
-
           const hay = Object.values(o).map(v => String(v ?? '').toLowerCase()).join(' • ');
           const inQ = !q || hay.includes(q);
-
           return inLayer && inQ;
         });
 
@@ -602,7 +605,7 @@
 
           const gmaps = hasCoords
             ? `https://www.google.com/maps?q=${encodeURIComponent(lat+','+lon)}`
-            : (hasVal(addr) ? `https://www.google.com/maps?q=${encodeURIComponent(addr)}` : '');
+            : (addr ? `https://www.google.com/maps?q=${encodeURIComponent(addr)}` : '');
 
           const card = document.createElement('div');
           card.className = 'card';
@@ -617,8 +620,8 @@
               </div>
               <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
                 ${hasCoords ? `<span style="font-size:11px; color:#6b7280;">${lat.toFixed(5)}, ${lon.toFixed(5)}</span>` : ''}
-                ${gmaps ? `<a href="${esc2(gmaps)}" target="_blank" style="font-size:11px; color:#2563eb; text-decoration:underline;">Open in Google Maps</a>` : ''}
-                ${url ? `<a href="${esc2(url)}" target="_blank" style="font-size:11px; color:#2563eb; text-decoration:underline;">Open link</a>` : ''}
+                ${gmaps ? `<a href="${esc2(gmaps)}" target="_blank" style="font-size:11px; text-decoration:underline;">Open in Google Maps</a>` : ''}
+                ${url ? `<a href="${esc2(url)}" target="_blank" style="font-size:11px; text-decoration:underline;">Open link</a>` : ''}
               </div>
             </div>
           `;
@@ -656,20 +659,50 @@
       // Boot
       (async () => {
         try {
-          fStatus.textContent = 'Loading data…';
+          document.getElementById('f-status').textContent = 'Loading data…';
           const raw = await loadCsv(CSV_URL);
           fRows = normalize(raw);
           refreshLayerChoices();
-          fStatus.textContent = 'Ready — type a query and press Search';
+          document.getElementById('f-status').textContent = 'Ready — type a query and press Search';
         } catch (e) {
           console.error(e);
-          fStatus.textContent = 'Failed to load CSV — check link & publish settings';
+          document.getElementById('f-status').textContent = 'Failed to load CSV — check link & publish settings';
         }
       })();
-      /* ============ END CSV SEARCH/FILTER ============ */
-    };
+    }
+
+    // Welcome gate logic
+    const gate = document.getElementById('welcome-gate');
+    const openBtn = document.getElementById('wg-open');
+    const loading = document.getElementById('wg-loading');
+    const remember = document.getElementById('wg-remember');
+
+    // Skip gate if remembered in last 24h
+    try {
+      const ts = Number(localStorage.getItem('wg_ok_ts') || 0);
+      if (ts && (Date.now() - ts) < 24*60*60*1000) {
+        gate.style.display = 'none';
+        (async () => { await lazyLoadMapDeps(); initMapApp(); })();
+      }
+    } catch {}
+
+    openBtn.addEventListener('click', async () => {
+      loading.style.display = 'block';
+      openBtn.disabled = true;
+      try {
+        await lazyLoadMapDeps();
+        initMapApp();
+        gate.style.display = 'none';
+        if (remember.checked) { try { localStorage.setItem('wg_ok_ts', String(Date.now())); } catch {} }
+      } catch (e) {
+        loading.textContent = 'Failed to load the map libraries. Please refresh.';
+        console.error(e);
+        openBtn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
+
 
 
