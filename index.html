@@ -192,31 +192,30 @@
     const USAGE_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw71txMMcQxRwBDf88end-ZqESPAjXHqzdvoewTEqXTe1MQXdNmN4kFE54nT-ipwPOZNg/exec';
     const USAGE_SECRET   = 'change-me-please';
 
-    // (NEW) Stable per-client id for server-side throttle
-    const sm_cid = (() => {
-      try {
-        const k = 'sm_cid';
-        let v = localStorage.getItem(k);
-        if (!v) {
-          const rnd = (crypto.randomUUID && crypto.randomUUID()) ||
-                      (Date.now() + '-' + Math.random().toString(36).slice(2));
-          localStorage.setItem(k, rnd);
-          v = rnd;
-        }
-        return v;
-      } catch {
-        // Fallback if localStorage unavailable
-        return (crypto.randomUUID && crypto.randomUUID()) ||
-               (Date.now() + '-' + Math.random().toString(36).slice(2));
+    /* stable per-browser id (cid) */
+    function getClientId() {
+      const KEY = 'sm_cid';
+      let id = localStorage.getItem(KEY);
+      if (!id) {
+        const idFromCrypto = (function () {
+          try {
+            const bytes = new Uint8Array(12);
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+          } catch { return null; }
+        })();
+        id = 'cid_' + (idFromCrypto || (String(Math.random()).slice(2) + String(Date.now())));
+        try { localStorage.setItem(KEY, id); } catch {}
       }
-    })();
+      return id;
+    }
 
     async function checkQuotaAndMaybeBlock() {
       try {
         const url = new URL(USAGE_ENDPOINT);
         url.searchParams.set('k', USAGE_SECRET);
-        url.searchParams.set('cid', sm_cid);       // (NEW) send client id
         url.searchParams.set('record', '1');
+        url.searchParams.set('cid', getClientId());
 
         const res = await fetch(url.toString(), { method: 'GET', credentials: 'omit' });
         if (!res.ok) throw new Error('usage endpoint failed: ' + res.status);
@@ -474,7 +473,7 @@
         Name: ['name','title','label','stadium','venue','poi','place'],
         Layer: ['layer','category','type','group','sheet','tab','list'],
         Latitude: ['latitude','lat','y','y_coord','ycoord','φ','northing','lat (y)','lat_y'],
-        Longitude: ['longitude','lon','lng','long','x','xcoord','λ','easting','lon (x)','lon_x'],
+        Longitude: ['longitude','lon','lng','long','x','x_coord','xcoord','λ','easting','lon (x)','lon_x'],
         Address: ['address','addr','location','street','city','town'],
         URL: ['url','link','website','href','web']
       };
