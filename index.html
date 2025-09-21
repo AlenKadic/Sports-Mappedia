@@ -5,13 +5,14 @@
   <title>Sports Mappedia</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
 
-  <!-- Security meta tags -->
+  <!-- Security meta tags (CSP allows Google Apps Script) -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     connect-src 'self'
       https://api.mapbox.com https://events.mapbox.com
       https://api.tiles.mapbox.com https://*.tiles.mapbox.com
       https://docs.google.com https://*.googleusercontent.com
+      https://script.google.com https://script.googleusercontent.com
       https://cdn.jsdelivr.net;
     img-src 'self' data: blob:
       https://api.mapbox.com https://*.tiles.mapbox.com https://events.mapbox.com;
@@ -25,7 +26,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=(), fullscreen=(self), payment=()">
 
-  <!-- Mapbox & PapaParse are lazy-loaded after 'Open the map'. Your styles below: -->
+  <!-- Styles -->
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -65,15 +66,9 @@
   <!-- Welcome gate -->
   <div id="welcome-gate">
     <div id="welcome-card">
-      <!-- Centered big logo (title removed) -->
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:16px;text-align:center;">
-        <img
-          src="sports-mappedia-logo.png"
-          alt="Sports Mappedia logo: Luna"
-          style="height:280px; width:auto; max-width:80vw; border-radius:12px;"
-        />
+        <img src="sports-mappedia-logo.png" alt="Sports Mappedia logo: Luna" style="height:280px; width:auto; max-width:80vw; border-radius:12px;" />
       </div>
-
       <p style="margin:0 0 16px 0;color:#374151;">
         This is unofficial fan created GIS hub for Sports events.<br>
         My name is <b>Luna</b> and if you click &quot;Open the map&quot; I will help you find your way around.
@@ -131,6 +126,40 @@
   </div>
 
   <div id="map"></div>
+
+  <!-- Usage meter placed BEFORE any Mapbox load -->
+  <script>
+    /* ========= DIY usage meter / kill-switch ========= */
+    const USAGE_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw71txMMcQxRwBDf88end-ZqESPAjXHqzdvoewTEqXTe1MQXdNmN4kFE54nT-ipwPOZNg/exec'; // <-- CHANGE ME if you redeploy
+    const USAGE_SECRET   = 'change-me-please'; // <-- CHANGE ME (must match CONFIG.SHARED_SECRET in Apps Script)
+
+    async function checkQuotaAndMaybeBlock({ record = true } = {}) {
+      const url = new URL(USAGE_ENDPOINT);
+      url.searchParams.set('k', USAGE_SECRET);
+      url.searchParams.set('record', record ? '1' : '0');
+
+      const res = await fetch(url.toString(), { method: 'GET', credentials: 'omit' });
+      if (!res.ok) throw new Error('usage endpoint failed: ' + res.status);
+      const data = await res.json();
+
+      if (!data.ok) {
+        const gate = document.getElementById('welcome-gate');
+        const card = document.getElementById('welcome-card') || gate?.firstElementChild;
+        if (gate && card) {
+          gate.style.display = 'flex';
+          card.innerHTML = `
+            <h2 style="margin-top:0;">Temporarily unavailable</h2>
+            <p>We reached our monthly viewing limit. Please try again next month.</p>
+          `;
+        } else {
+          alert('Temporarily unavailable — monthly limit reached.');
+        }
+        return false;
+      }
+      return true;
+    }
+    /* ========= end usage meter ========= */
+  </script>
 
   <!-- Lazy loader + app bootstrap -->
   <script>
@@ -525,7 +554,7 @@
       })();
     }
 
-    // Gate logic
+    // Gate logic — now checks quota BEFORE loading Mapbox libs
     const gate = document.getElementById('welcome-gate');
     const openBtn = document.getElementById('wg-open');
     const loading = document.getElementById('wg-loading');
@@ -534,8 +563,12 @@
     try {
       const ts = Number(localStorage.getItem('wg_ok_ts') || 0);
       if (ts && (Date.now() - ts) < 24*60*60*1000) {
-        gate.style.display = 'none';
-        (async () => { await lazyLoadMapDeps(); initMapApp(); })();
+        (async () => {
+          const ok = await checkQuotaAndMaybeBlock({ record: true });
+          if (!ok) return;
+          await lazyLoadMapDeps(); initMapApp();
+          gate.style.display = 'none';
+        })();
       }
     } catch {}
 
@@ -543,6 +576,8 @@
       loading.style.display = 'block';
       openBtn.disabled = true;
       try {
+        const ok = await checkQuotaAndMaybeBlock({ record: true });
+        if (!ok) return;
         await lazyLoadMapDeps();
         initMapApp();
         gate.style.display = 'none';
@@ -550,17 +585,11 @@
       } catch (e) {
         loading.textContent = 'Failed to load the map libraries. Please refresh.';
         console.error(e);
+      } finally {
         openBtn.disabled = false;
+        loading.style.display = 'none';
       }
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
