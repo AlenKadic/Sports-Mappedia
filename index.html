@@ -282,7 +282,7 @@
         [...markerLayers, ...polygonLayers].forEach(id => {
           if (map.getLayer(id)) {
             const vis = map.getLayoutProperty(id, 'visibility');
-            if (vis === 'none') map.setLayoutProperty(id, 'visible', 'visible');
+            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
           }
         });
 
@@ -594,6 +594,7 @@
   </script>
 </body>
 </html>
+
 
 
 
