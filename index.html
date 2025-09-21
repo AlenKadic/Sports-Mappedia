@@ -342,7 +342,7 @@
 
         const styleLayers = map.getStyle().layers.map(l => l.id);
         const resolveId = (name) => {
-          if (styleLayers.includes(name) return name;
+          if (styleLayers.includes(name)) return name;
           const hit = styleLayers.find(id => id.toLowerCase() === name.toLowerCase())
                 || styleLayers.find(id => id.toLowerCase().includes(name.toLowerCase()));
           return hit || name;
@@ -675,4 +675,5 @@
   </script>
 </body>
 </html>
+
 
