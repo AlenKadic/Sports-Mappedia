@@ -4,15 +4,28 @@
   <meta charset="utf-8" />
   <title>Sports Mappedia</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <!-- Mapbox & PapaParse are lazy-loaded after "Open the map". -->
 
+  <!-- Security meta tags -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self' https://api.mapbox.com https://events.mapbox.com https://api.tiles.mapbox.com https://*.tiles.mapbox.com https://docs.google.com https://googleusercontent.com https://cdn.jsdelivr.net;
+    img-src 'self' data: blob: https://api.mapbox.com https://*.tiles.mapbox.com https://events.mapbox.com;
+    style-src 'self' 'unsafe-inline' https://api.mapbox.com;
+    script-src 'self' 'unsafe-inline' https://api.mapbox.com https://cdn.jsdelivr.net;
+    worker-src blob:;
+    frame-ancestors 'none';
+    base-uri 'self';
+    upgrade-insecure-requests;
+  ">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(self), microphone=(), camera=(), fullscreen=(self), payment=()">
+
+  <!-- Mapbox & PapaParse are lazy-loaded after "Open the map". -->
   <style>
     body { margin: 0; padding: 0; }
     #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-    #search-box-container {
-      position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px;
-    }
+    #search-box-container { position: absolute; z-index: 2; width: 45%; left: 50%; margin-left: -25%; top: 10px; }
 
     #toggle-directions, #geolocate-button {
       position: absolute; z-index: 10; padding: 8px 12px; background-color: white; border: 1px solid #ccc; cursor: pointer;
@@ -75,27 +88,8 @@
     }
 
     /* Welcome Gate (full-screen) — brand blue */
-    #welcome-gate {
-      position: fixed; inset: 0; background:#0057B8;
-      display: flex; align-items: center; justify-content: center; z-index: 1000;
-    }
-    #welcome-card {
-      width: min(640px, 92vw); background: #fff; border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px;
-    }
-    #welcome-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    #wg-open {
-      padding:10px 14px; border-radius:10px; border:1px solid #111827;
-      background:#111827; color:#fff; cursor:pointer;
-    }
-
-    /* ===== Desktop-only fix: move map controls from top-right to bottom-right ===== */
     @media (min-width: 601px) {
-      .mapboxgl-ctrl-top-right {
-        top: auto !important;
-        bottom: 25px !important;
-        right: 1px !important;
-      }
+      .mapboxgl-ctrl-top-right { top: auto !important; bottom: 25px !important; right: 1px !important; }
     }
   </style>
 </head>
@@ -594,6 +588,7 @@
   </script>
 </body>
 </html>
+
 
 
 
