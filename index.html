@@ -417,8 +417,7 @@
       geocoder.bindMap(map);
       document.getElementById('search-box-container').appendChild(geocoder);
 
-      const CSV_URL =
-        `${USAGE_ENDPOINT}?action=csv&k=${encodeURIComponent(USAGE_SECRET)}&cid=${encodeURIComponent(getClientId())}`;
+      const CSV_URL = `${USAGE_ENDPOINT}?action=csv&k=${encodeURIComponent(USAGE_SECRET)}&cid=${encodeURIComponent(getClientId())}`;
 
       let fRows = []; let fFiltered = []; let fMarker = null;
 
@@ -674,6 +673,7 @@
   </script>
 </body>
 </html>
+
 
 
 
