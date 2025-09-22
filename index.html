@@ -417,8 +417,8 @@
       geocoder.bindMap(map);
       document.getElementById('search-box-container').appendChild(geocoder);
 
-      /* CSV SEARCH/FILTER */
-      const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQo9I4u2eq3GUY-9K-Kopu1wRcA9-ZHI9BjEVAMs4kD8zH3PGaKmRWwm9Wcy4bTgJTFNeQrqfxcAOR8/pub?output=csv';
+      const CSV_URL =
+        `${USAGE_ENDPOINT}?action=csv&k=${encodeURIComponent(USAGE_SECRET)}&cid=${encodeURIComponent(getClientId())}`;
 
       let fRows = []; let fFiltered = []; let fMarker = null;
 
@@ -674,5 +674,6 @@
   </script>
 </body>
 </html>
+
 
 
