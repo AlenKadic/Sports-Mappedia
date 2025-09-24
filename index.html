@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -142,8 +142,7 @@
     }
     #finder { font-family: var(--sm-font); }
     #quick-menu, #qm-btn, #qm-list, #qm-list a { font-family: var(--sm-font); }
-    .mapboxgl-ctrl, .mapboxgl-ctrl * { font-family: var(--sm-font) !important; }
-    .mapboxgl-ctrl-geocoder, .mapboxgl-ctrl-geocoder * { font-family: var(--sm-font) !important; }
+    /* (Removed Mapbox override rules to avoid UI breakage) */
   </style>
 </head>
 <body>
@@ -173,7 +172,7 @@
     </div>
   </div>
 
-  <!-- Existing UI containers -->
+    <!-- Existing UI containers -->
   <div id="search-box-container">
     <!-- Quick menu button sits on the right edge of the search bar -->
     <div id="quick-menu" class="qm">
@@ -393,7 +392,7 @@
         const markerLayers = markerNames.map(resolveId);
         const polygonLayers = polygonNames.map(resolveId);
 
-        [...markerLayers, ...polygonLayers].forEach(id => {
+        [...markerLayers, ...polygonLayers].forEach id => {
           if (map.getLayer(id)) {
             const vis = map.getLayoutProperty(id, 'visibility');
             if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
@@ -732,3 +731,5 @@
   </script>
 </body>
 </html>
+
+
