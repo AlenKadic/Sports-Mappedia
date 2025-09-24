@@ -132,18 +132,6 @@
     #qm-list a:hover{background:#f3f4f6}
     .qm.open #qm-list{display:block}
     .sr-only{position:absolute;left:-9999px}
-
-    /* ==== GLOBAL FONT NORMALIZATION ==== */
-    :root {
-      --sm-font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    html, body, button, input, select, textarea {
-      font-family: var(--sm-font);
-    }
-    #finder { font-family: var(--sm-font); }
-    #quick-menu, #qm-btn, #qm-list, #qm-list a { font-family: var(--sm-font); }
-    .mapboxgl-ctrl, .mapboxgl-ctrl * { font-family: var(--sm-font) !important; }
-    .mapboxgl-ctrl-geocoder, .mapboxgl-ctrl-geocoder * { font-family: var(--sm-font) !important; }
   </style>
 </head>
 <body>
@@ -375,93 +363,81 @@
         }
       });
 
-map.on('style.load', () => {
-  const markerNames = [
-    'Games','Stadium Parking','Stadium Gates','Stadiums',
-    'Airports','Team Hotels','Team Training Facilities','Cities'
-  ];
-  const polygonNames = ['Stadium Parking'];
+      map.on('style.load', () => {
+        const markerNames = [
+          'Games','Stadium Parking','Stadium Gates','Stadiums',
+          'Airports','Team Hotels','Team Training Facilities','Cities'
+        ];
+        const polygonNames = ['Stadium Parking'];
 
-  const styleLayers = map.getStyle().layers.map(l => l.id);
-  const resolveId = (name) => {
-    if (styleLayers.includes(name)) return name;
-    const hit = styleLayers.find(id => id.toLowerCase() === name.toLowerCase())
-          || styleLayers.find(id => id.toLowerCase().includes(name.toLowerCase()));
-    return hit || name;
-  };
+        const styleLayers = map.getStyle().layers.map(l => l.id);
+        const resolveId = (name) => {
+          if (styleLayers.includes(name)) return name;
+          const hit = styleLayers.find(id => id.toLowerCase() === name.toLowerCase())
+                || styleLayers.find(id => id.toLowerCase().includes(name.toLowerCase()));
+          return hit || name;
+        };
 
-  const markerLayers = markerNames.map(resolveId);
-  const polygonLayers = polygonNames.map(resolveId);
+        const markerLayers = markerNames.map(resolveId);
+        const polygonLayers = polygonNames.map(resolveId);
 
-  // ✅ Correct, parse-safe loop
-  [...markerLayers, ...polygonLayers].forEach(function (id) {
-    if (map.getLayer(id)) {
-      const vis = map.getLayoutProperty(id, 'visibility');
-      if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
-    }
-  });
+        [...markerLayers, ...polygonLayers].forEach(id => {
+          if (map.getLayer(id)) {
+            const vis = map.getLayoutProperty(id, 'visibility');
+            if (vis === 'none') map.setLayoutProperty(id, 'visibility', 'visible');
+          }
+        });
 
-  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  function fmtMaybeLink(val){
-    const s = String(val||'');
-    return /^https?:\/\//i.test(s)
-      ? `<a href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`
-      : esc(s);
-  }
-  function gmapsLink(props,latKey='Latitude',lonKey='Longitude',addrKey='Address'){
-    const lat=props[latKey],lon=props[lonKey];
-    const addr=props[addrKey]??(addrKey&&props[addrKey.toLowerCase?.()])??props['address'];
-    if (lat!=null && lon!=null && String(lat).trim()!=='' && String(lon).trim()!=='') {
-      return `<a href="https://www.google.com/maps?q=${encodeURIComponent(lat+','+lon)}" target="_blank" rel="noopener">Open in Google Maps</a>`;
-    }
-    if (addr && String(addr).trim()!=='') {
-      return `<a href="https://www.google.com/maps?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">Open in Google Maps</a>`;
-    }
-    return '';
-  }
+        function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        function fmtMaybeLink(val){const s=String(val||'');return /^https?:\/\//i.test(s)?`<a href="${esc(s)}" target="_blank" rel="noopener">${esc(s)}</a>`:esc(s);}
+        function gmapsLink(props,latKey='Latitude',lonKey='Longitude',addrKey='Address'){
+          const lat=props[latKey],lon=props[lonKey];const addr=props[addrKey]??props[addrKey?.toLowerCase?.()]??props['address'];
+          if(lat!=null&&lon!=null&&String(lat).trim()!==''&&String(lon).trim()!==''){return `<a href="https://www.google.com/maps?q=${encodeURIComponent(lat+','+lon)}" target="_blank" rel="noopener">Open in Google Maps</a>`;}
+          if(addr&&String(addr).trim()!==''){return `<a href="https://www.google.com/maps?q=${encodeURIComponent(addr)}" target="_blank" rel="noopener">Open in Google Maps</a>`;}
+          return '';
+        }
 
-  const POPUP_CONFIG = {
-    'Games': { fields: [['Name','Stadium'],['Round','Round'],['Date','Date'],['Time','Time'],['Team 1','Team 1'],['Team 2','Team 2'],['Game link','Game link',true],['Stadium','Stadium'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Capacity','Capacity'],['Description','Description']], gmaps:'coords-or-address' },
-    'Stadium Parking': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['(Optimal) Sector','(Optimal) Sector'],['(Optimal) Gate','(Optimal) Gate'],['Description','Description']], gmaps:'coords-or-address' },
-    'Stadium Gates': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['(Optimal) Sector','(Optimal) Sector'],['(Optimal) Parking','(Optimal) Parking'],['Description','Description']], gmaps:'coords-or-address' },
-    'Stadiums': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Capacity','Capacity'],['Stadium Map','Stadium Map',true],['Description','Description']], gmaps:'coords-or-address' },
-    'Airports': { fields: [['Name','Name'],['Airport_Ident','Airport Code'],['Airport_Type','Airport size'],['Latitude','Latitude'],['Longitude','Longitude'],['City_1','Nearby City 1'],['Distance_Miles_1','Miles to Nearby City 1'],['City_2','Nearby City 2'],['Distance_Miles_2','Miles to Nearby City 2'],['City_3','Nearby City 3'],['Distance_Miles_3','Miles to Nearby City 3'],['City_4','Nearby City 4'],['Distance_Miles_4','Miles to Nearby City 4']], gmaps:'coords-or-address' },
-    'Team Hotels': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Team','Team'],['Paired Training Facility','Paired Training Facility']], gmaps:'coords-or-address' },
-    'Team Training Facilities': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Team','Team'],['Paired Hotel','Paired Hotel']], gmaps:'coords-or-address' },
-    'Cities': { fields: [['Name','Name'],['Latitude','Latitude'],['Longitude','Longitude'],['Category','Category'],['Description','Description'],['URL','Website',true]], gmaps:'coords-or-address' }
-  };
+        const POPUP_CONFIG = {
+          'Games': { fields: [['Name','Stadium'],['Round','Round'],['Date','Date'],['Time','Time'],['Team 1','Team 1'],['Team 2','Team 2'],['Game link','Game link',true],['Stadium','Stadium'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Capacity','Capacity'],['Description','Description']], gmaps:'coords-or-address' },
+          'Stadium Parking': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['(Optimal) Sector','(Optimal) Sector'],['(Optimal) Gate','(Optimal) Gate'],['Description','Description']], gmaps:'coords-or-address' },
+          'Stadium Gates': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['(Optimal) Sector','(Optimal) Sector'],['(Optimal) Parking','(Optimal) Parking'],['Description','Description']], gmaps:'coords-or-address' },
+          'Stadiums': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Capacity','Capacity'],['Stadium Map','Stadium Map',true],['Description','Description']], gmaps:'coords-or-address' },
+          'Airports': { fields: [['Name','Name'],['Airport_Ident','Airport Code'],['Airport_Type','Airport size'],['Latitude','Latitude'],['Longitude','Longitude'],['City_1','Nearby City 1'],['Distance_Miles_1','Miles to Nearby City 1'],['City_2','Nearby City 2'],['Distance_Miles_2','Miles to Nearby City 2'],['City_3','Nearby City 3'],['Distance_Miles_3','Miles to Nearby City 3'],['City_4','Nearby City 4'],['Distance_Miles_4','Miles to Nearby City 4']], gmaps:'coords-or-address' },
+          'Team Hotels': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Team','Team'],['Paired Training Facility','Paired Training Facility']], gmaps:'coords-or-address' },
+          'Team Training Facilities': { fields: [['Name','Name'],['Address','Address'],['City','City'],['Latitude','Latitude'],['Longitude','Longitude'],['Team','Team'],['Paired Hotel','Paired Hotel']], gmaps:'coords-or-address' },
+          'Cities': { fields: [['Name','Name'],['Latitude','Latitude'],['Longitude','Longitude'],['Category','Category'],['Description','Description'],['URL','Website',true]], gmaps:'coords-or-address' }
+        };
 
-  function renderPopupHTML(layerId, props) {
-    const cfg = POPUP_CONFIG[layerId] || { fields: [], gmaps: 'coords-or-address' };
-    const parts = [];
-    for (const [key,label,makeLink] of cfg.fields) {
-      if (!(key in props)) continue;
-      const val = props[key]; if (val == null || String(val).trim() === '') continue;
-      const valueHtml = makeLink ? fmtMaybeLink(val) : esc(val);
-      parts.push(`<div><b>${esc(label)}:</b> ${valueHtml}</div>`);
-    }
-    if (cfg.gmaps !== 'none') {
-      const gm = gmapsLink(props);
-      if (gm) parts.push(`<div style="margin-top:6px">${gm}</div>`);
-    }
-    return parts.join('') || '(no data)';
-  }
+        function renderPopupHTML(layerId, props) {
+          const cfg = POPUP_CONFIG[layerId] || { fields: [], gmaps: 'coords-or-address' };
+          const parts = [];
+          for (const [key,label,makeLink] of cfg.fields) {
+            if (!(key in props)) continue;
+            const val = props[key]; if (val == null || String(val).trim() === '') continue;
+            const valueHtml = makeLink ? fmtMaybeLink(val) : esc(val);
+            parts.push(`<div><b>${esc(label)}:</b> ${valueHtml}</div>`);
+          }
+          if (cfg.gmaps !== 'none') {
+            const gm = gmapsLink(props);
+            if (gm) parts.push(`<div style="margin-top:6px">${gm}</div>`);
+          }
+          return parts.join('') || '(no data)';
+        }
 
-  function bindLayerHandlers(layerId) {
-    if (!map.getLayer(layerId)) return;
-    map.on('click', layerId, (e) => {
-      const feat = e.features && e.features[0];
-      const props = (feat && feat.properties) || {};
-      const html = renderPopupHTML(layerId, props);
-      new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(html).addTo(map);
-    });
-    map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
-  }
+        function bindLayerHandlers(layerId) {
+          if (!map.getLayer(layerId)) return;
+          map.on('click', layerId, (e) => {
+            const feat = e.features && e.features[0];
+            const props = (feat && feat.properties) || {};
+            const html = renderPopupHTML(layerId, props);
+            new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(html).addTo(map);
+          });
+          map.on('mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer'; });
+          map.on('mouseleave', layerId, () => { map.getCanvas().style.cursor = ''; });
+        }
 
-  [...markerLayers, ...polygonLayers].forEach(bindLayerHandlers);
-});
-
+        [...markerLayers, ...polygonLayers].forEach(id => bindLayerHandlers(id));
+      });
 
       // Geocoder (Search)
       const geocoder = new mapboxsearch.MapboxGeocoder();
@@ -517,7 +493,7 @@ map.on('style.load', () => {
       function loadCsv(url){
         return new Promise((resolve, reject) => {
           Papa.parse(url, { header:true, download:true, dynamicTyping:false,
-            complete: res => { const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!==''); resolve(rows); },
+            complete: res => { const rows = res.data.filter(r => Object.values(r).some(v => String(v||'').trim()!=='')); resolve(rows); },
             error: reject
           });
         });
