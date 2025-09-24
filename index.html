@@ -116,21 +116,22 @@
       }
     }
 
-    /* === Quick menu (dropdown) === */
-    .qm{position:fixed;left:10px;bottom:10px;z-index:70}
+    /* === Quick menu (dropdown) — white button, same font; anchored to search bar right === */
+    #quick-menu{position:absolute; right:0; top:0; z-index:50;}
     #qm-btn{
-      padding:8px 12px;border-radius:10px;border:1px solid #004a9f;
-      background:#0057B8;color:#fff;cursor:pointer;
-      box-shadow:0 4px 14px rgba(0,0,0,.18)
+      width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;
+      background:#fff;border:1px solid #ccc;border-radius:8px;color:#111827;cursor:pointer;
+      font:12px inherit; line-height:1;
     }
     #qm-list{
-      display:none;position:absolute;left:0;bottom:44px;min-width:220px;
+      display:none;position:absolute;right:0;top:40px;min-width:220px;
       background:#fff;border:1px solid #e5e7eb;border-radius:10px;
-      box-shadow:0 14px 40px rgba(0,0,0,.22);overflow:hidden
+      box-shadow:0 14px 40px rgba(0,0,0,.22);overflow:hidden; z-index:60;
     }
     #qm-list a{display:block;padding:10px 12px;color:#111827;text-decoration:none}
     #qm-list a:hover{background:#f3f4f6}
     .qm.open #qm-list{display:block}
+    .sr-only{position:absolute;left:-9999px}
   </style>
 </head>
 <body>
@@ -161,7 +162,19 @@
   </div>
 
   <!-- Existing UI containers -->
-  <div id="search-box-container"></div>
+  <div id="search-box-container">
+    <!-- Quick menu button sits on the right edge of the search bar -->
+    <div id="quick-menu" class="qm">
+      <button id="qm-btn" aria-haspopup="true" aria-expanded="false" title="Open menu">
+        <span aria-hidden="true">☰</span><span class="sr-only">Menu</span>
+      </button>
+      <nav id="qm-list" role="menu" aria-label="Site menu">
+        <a role="menuitem" href="/policies.html">Policy documents</a>
+        <a role="menuitem" href="/contact.html">Contact</a>
+        <a role="menuitem" href="/social.html">Social media</a>
+      </nav>
+    </div>
+  </div>
   <button id="toggle-directions">Show Directions</button>
   <button id="geolocate-button">📍 Locate Me</button>
 
@@ -203,16 +216,6 @@
   </div>
 
   <div id="map"></div>
-
-  <!-- Quick menu (bottom-left) -->
-  <div id="quick-menu" class="qm">
-    <button id="qm-btn" aria-haspopup="true" aria-expanded="false" title="Open menu">☰ Menu</button>
-    <nav id="qm-list" role="menu" aria-label="Site menu">
-      <a role="menuitem" href="/policies.html">Policy documents</a>
-      <a role="menuitem" href="/contact.html">Contact</a>
-      <a role="menuitem" href="/social.html">Social media</a>
-    </nav>
-  </div>
 
   <!-- Lazy loader + app bootstrap -->
   <script>
@@ -717,6 +720,5 @@
   </script>
 </body>
 </html>
-
 
 
