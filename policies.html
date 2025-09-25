@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Policies — Sports Mappedia</title>
+  <title>Policies — Sports Mappedia™</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base href="/" />
   <meta http-equiv="Content-Security-Policy" content="
@@ -37,6 +37,9 @@
     .card p { margin:0; font-size:14px; color:#374151; }
     .meta { margin-top:8px; font-size:12px; color:var(--muted); }
     footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--border); font-size:12px; color: var(--muted); }
+
+    /* tiny helper for the ™ mark */
+    .tm { font-size:.65em; vertical-align:super; margin-left:2px; opacity:.9; }
   </style>
 </head>
 <body>
@@ -44,13 +47,13 @@
     <div class="topbar">
       <div class="brand">
         <img src="sports-mappedia-logo.png" alt="" />
-        <span>Sports Mappedia</span>
+        <span>Sports Mappedia<span class="tm" aria-hidden="true">™</span></span>
       </div>
       <div class="back"><a href="/">← Back to map</a></div>
     </div>
 
     <h1>Policy documents</h1>
-    <p class="disclaimer"><b>Unofficial:</b> Sports Mappedia is a fan-created project and is not affiliated with any team, league, venue, or organizer.</p>
+    <p class="disclaimer"><b>Unofficial:</b> Sports Mappedia<span class="tm" aria-hidden="true">™</span> is a fan-created project and is not affiliated with any team, league, venue, or organizer.</p>
 
     <div class="grid">
       <a class="card" href="/terms.html">
@@ -73,7 +76,7 @@
     </div>
 
     <footer>
-      © 2025 Sports Mappedia — Unofficial fan-created project.
+      © 2025 Sports Mappedia<span class="tm" aria-hidden="true">™</span> — Unofficial fan-created project.
     </footer>
   </div>
 </body>
