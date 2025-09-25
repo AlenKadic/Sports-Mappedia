@@ -13,7 +13,7 @@
     connect-src 'self';
   ">
   <style>
-    :root { --blue:#0057B8; --ink:#111827; --muted:#6b7280; --border:#e5e7eb; }
+    :root { --blue:#0057B8; --ink:#111827; --muted:#6b7280; --border:#e5e7eb; --bg:#f9fafb; }
     html,body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--ink); background:#fff; }
     .wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
     .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0 8px; border-bottom:1px solid var(--border); }
@@ -22,13 +22,19 @@
     .back a { text-decoration:none; color:var(--ink); border:1px solid var(--border); border-radius:8px; padding:6px 10px; }
     .back a:hover { background:#f9fafb; }
     h1 { font-size: 22px; margin: 18px 0 4px; }
-    .toc { background:#f9fafb; border:1px solid var(--border); border-radius:10px; padding:12px; margin:12px 0 18px; }
-    .toc a { color:var(--ink); text-decoration:none; }
-    h2 { font-size:18px; margin: 18px 0 8px; }
-    p, li { font-size:14px; line-height:1.55; color:#1f2937; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .disclaimer { color:#374151; font-size:13px; background:#f3f4f6; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin:10px 0 18px; }
+    .grid { display:grid; grid-template-columns: 1fr; gap:12px; }
+    @media(min-width:720px){ .grid { grid-template-columns: 1fr 1fr; } }
+    .card {
+      display:block; text-decoration:none; color:inherit;
+      border:1px solid var(--border); border-radius:12px; background:#fff;
+      padding:14px; transition: box-shadow .15s ease, transform .05s ease;
+    }
+    .card:hover { box-shadow:0 10px 28px rgba(0,0,0,.08); transform: translateY(-1px); }
+    .card h2 { font-size:18px; margin:0 0 6px; color:#0f172a; }
+    .card p { margin:0; font-size:14px; color:#374151; }
+    .meta { margin-top:8px; font-size:12px; color:var(--muted); }
     footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--border); font-size:12px; color: var(--muted); }
-    .disclaimer { color:#374151; font-size:13px; background:#f3f4f6; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
   </style>
 </head>
 <body>
@@ -41,64 +47,29 @@
       <div class="back"><a href="/">← Back to map</a></div>
     </div>
 
-    <h1>Policies</h1>
+    <h1>Policy documents</h1>
     <p class="disclaimer"><b>Unofficial:</b> Sports Mappedia is a fan-created project and is not affiliated with any team, league, venue, or organizer.</p>
 
-    <div class="toc">
-      <b>Jump to:</b>
-      <ul>
-        <li><a href="#terms">Terms of Use</a></li>
-        <li><a href="#cookies">Cookie Policy</a></li>
-        <li><a href="#privacy">Privacy Policy</a></li>
-        <li><a href="#gdpr">GDPR Information</a></li>
-      </ul>
+    <div class="grid">
+      <a class="card" href="/terms.html">
+        <h2>Terms of Use</h2>
+        <p>Unofficial project, acceptable use, third-party services, availability, and disclaimers.</p>
+        <div class="meta">Last updated: 24–25 Sep 2025</div>
+      </a>
+
+      <a class="card" href="/privacy.html">
+        <h2>Privacy Policy</h2>
+        <p>Minimal data, localStorage, optional geolocation (consent), providers, EU/UK rights incl. portability; no profiling/automated decisions.</p>
+        <div class="meta">Last updated: 25 Sep 2025</div>
+      </a>
+
+      <a class="card" href="/cookies.html">
+        <h2>Cookie & Local Storage Policy</h2>
+        <p>What we store locally (e.g., welcome gate, preferences), third-party technical cookies, and how to manage them.</p>
+        <div class="meta">Last updated: 25 Sep 2025</div>
+      </a>
     </div>
 
-    <section id="terms">
-      <h2>Terms of Use</h2>
-      <p><i>Starter text — replace with your final Terms.</i></p>
-      <ul>
-        <li>Service provided “as is”, without warranties; content may contain errors or be incomplete.</li>
-        <li>No official affiliation or endorsement is claimed.</li>
-        <li>Do not use the site for unsafe navigation; verify routes and venue rules independently.</li>
-        <li>We may update or remove content at any time.</li>
-        <li>By using this site you accept these Terms.</li>
-      </ul>
-    </section>
-
-    <section id="cookies">
-      <h2>Cookie Policy</h2>
-      <p><i>Starter text — replace with your final Cookie Policy.</i></p>
-      <ul>
-        <li>We use strictly necessary cookies (e.g., “remember for 24h” welcome gate).</li>
-        <li>No advertising cookies. Third-party map libraries may set technical cookies for functionality.</li>
-        <li>You can clear or block cookies in your browser settings.</li>
-      </ul>
-    </section>
-
-    <section id="privacy">
-      <h2>Privacy Policy</h2>
-      <p><i>Starter text — replace with your final Privacy Policy.</i></p>
-      <ul>
-        <li>We process minimal personal data needed to operate the site.</li>
-        <li>Approximate, pseudonymous usage metrics may be collected to protect budgets and abuse (e.g., a per-browser ID).</li>
-        <li>Contact emails you send to us are processed to reply and manage inquiries.</li>
-        <li>We don’t sell personal data.</li>
-      </ul>
-      <p>Contact: <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a></p>
-    </section>
-
-    <section id="gdpr">
-      <h2>GDPR Information</h2>
-      <p><i>Starter text — replace with your final GDPR wording.</i></p>
-      <ul>
-        <li>EU/EEA users have rights to access, rectification, erasure, restriction, objection, and portability.</li>
-        <li>Legal basis typically: legitimate interests (site security/abuse prevention) and consent (where applicable).</li>
-        <li>To exercise rights, email <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a>.</li>
-      </ul>
-    </section>
-
-    
     <footer>
       © 2025 Sports Mappedia — Unofficial fan-created project. | <a href="/contact.html">Contact</a>
     </footer>
