@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Cookie & Local Storage Policy — Sports Mappedia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/" />
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0 auto; padding: 24px; max-width: 860px;
+      font: 14px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.6; color: #111827; background: #fff;
+    }
+    h1, h2 { line-height: 1.25; color: #0f172a; }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 18px; margin: 24px 0 8px; }
+    p, li { margin: 8px 0; }
+    .muted { color: #6b7280; }
+    a { color: #0b5fff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { margin: 12px 0 24px; }
+    nav a { margin-right: 12px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
+    footer { margin-top: 36px; font-size: 12px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cookie & Local Storage Policy</h1>
+    <p class="muted">Last updated: 24 Sep 2025</p>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/policies.html">Policy documents</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Use</a>
+    </nav>
+  </header>
+
+  <section>
+    <h2>Overview</h2>
+    <p>
+      We don’t set traditional tracking cookies. We use <strong>localStorage</strong> (and similar browser storage)
+      to keep the app smooth and protect our API budget. Third parties (e.g., Mapbox, GitHub Pages, Google Apps Script/CDN)
+      may set their own cookies or identifiers to operate their services securely.
+    </p>
+  </section>
+
+  <section>
+    <h2>Our storage entries</h2>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Type</th><th>Purpose</th><th>Typical lifetime</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>wg_ok_ts</code></td>
+          <td>localStorage</td>
+          <td>Remember that you dismissed the welcome gate so the map opens faster next time.</td>
+          <td>~24 hours (we check a 24h window)</td>
+        </tr>
+        <tr>
+          <td><code>sm_cid</code></td>
+          <td>localStorage</td>
+          <td>Random pseudonymous client ID for rate limiting and abuse prevention.</td>
+          <td>Persistent until you clear site data</td>
+        </tr>
+        <tr>
+          <td><code>finderCollapsed</code></td>
+          <td>localStorage</td>
+          <td>UI preference for collapsing the filter panel.</td>
+          <td>Persistent until cleared</td>
+        </tr>
+        <tr>
+          <td><code>finderAutoHide</code></td>
+          <td>localStorage</td>
+          <td>UI preference to auto-hide the filter panel on selection.</td>
+          <td>Persistent until cleared</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted">We don’t read these values outside your browser; they’re only used by the page’s scripts.</p>
+  </section>
+
+  <section>
+    <h2>Third-party technologies</h2>
+    <ul>
+      <li><strong>Mapbox</strong> may use cookies/telemetry to operate maps, search, and routing reliably and securely.</li>
+      <li><strong>GitHub Pages</strong> (hosting) and <strong>Google</strong> (Apps Script / CDN) may set technical cookies and maintain server logs.</li>
+    </ul>
+    <p>
+      Please consult those providers’ privacy policies for details.
+    </p>
+  </section>
+
+  <section>
+    <h2>Managing cookies & storage</h2>
+    <p>
+      You can clear site data or block storage in your browser settings. Blocking storage may reduce functionality
+      (e.g., the welcome gate reappears every visit; rate limiting may be less accurate; some UI preferences won’t stick).
+    </p>
+  </section>
+
+  <footer>
+    © Sports Mappedia Volunteers — unofficial fan project.
+  </footer>
+</body>
+</html>
