@@ -29,6 +29,19 @@
     .btn { display:inline-block; text-decoration:none; color:#fff; background:#111827; border:1px solid #111827; padding:8px 12px; border-radius:10px; }
     .btn:hover { filter:brightness(0.95); }
     footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--border); font-size:12px; color: var(--muted); }
+
+    /* --- Luna image in card (bottom-right) --- */
+    .card--luna { position: relative; padding-right: 140px; min-height: 160px; }
+    .card--luna .luna-img {
+      position: absolute; right: 14px; bottom: 14px;
+      width: 110px; height: auto; border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+      pointer-events: none; /* keeps clicks on the button easy */
+    }
+    @media (max-width: 420px){
+      .card--luna { padding-right: 120px; }
+      .card--luna .luna-img { width: 96px; }
+    }
   </style>
 </head>
 <body>
@@ -49,17 +62,21 @@
       <p><a class="btn" href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a></p>
     </div>
 
-    <div class="card">
+    <!-- Luna card with image -->
+    <div class="card card--luna">
       <div class="label">Luna's mail</div>
       <p>You can also contact Luna about her guidance through the Sports Mappedia database.</p>
       <p>Don't forget to attach some treats.</p>
       <p><a class="btn" href="mailto:luna@sportsmappedia.com">luna@sportsmappedia.com</a></p>
 
+      <!-- Place Luna.png in your repo root -->
+      <img class="luna-img" src="Luna.png" alt="Luna the Sports Mappedia pup" loading="lazy" />
     </div>
- 
+
     <footer>
       © 2025 Sports Mappedia — Unofficial fan-created project.
     </footer>
   </div>
 </body>
 </html>
+
