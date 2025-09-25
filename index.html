@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Sports Mappedia</title>
+  <title>Sports Mappedia™</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <!-- Make all relative paths resolve from the root on www.sportsmappedia.com -->
   <base href="/" />
@@ -150,13 +150,16 @@
     /* Smaller text in the dropdown menu */
     #qm-list,
     #qm-list a {
-      font-size: 11px;        /* ↓ was 12px; tweak to taste (10–12) */
+      font-size: 11px;
       line-height: 1.00;
     }
 
     #qm-list a {
-      padding: 8px 10px;      /* slightly tighter to match smaller text */
+      padding: 8px 10px;
     }
+
+    /* tiny helper for the ™ mark */
+    .tm { font-size:.65em; vertical-align:super; margin-left:2px; opacity:.9; }
    
   </style>
 </head>
@@ -174,7 +177,7 @@
       </div>
 
       <p style="margin:0 0 16px 0;color:#374151;">
-        This is unofficial fan created GIS hub for Sports events.<br>
+        This is an unofficial fan created GIS hub for Sports events.<br>
         My name is <b>Luna</b> and if you click &quot;Open the map&quot; I will help you find your way around.
       </p>
       <div id="welcome-actions">
@@ -193,6 +196,7 @@
     <div id="quick-menu" class="qm">
       <button id="qm-btn" aria-haspopup="true" aria-expanded="false" title="Open menu">
         <span aria-hidden="true">☰</span><span class="sr-only">Menu</span>
+      </button>
       <nav id="qm-list" role="menu" aria-label="Site menu">
         <a role="menuitem" href="/policies.html" target="_blank" rel="noopener">Policy documents</a>
         <a role="menuitem" href="/contact.html" target="_blank" rel="noopener">Contact</a>
@@ -207,7 +211,7 @@
   <div id="finder">
     <header>
       <div class="finder-left">
-        <span>Search & Filter Sports Mappedia Data</span>
+        <span>Search &amp; Filter Sports Mappedia<span class="tm" aria-hidden="true">™</span> Data</span>
         <img src="sports-mappedia-head.png" alt="" class="finder-icon" />
       </div>
       <button id="f-toggle" type="button" aria-expanded="true" aria-controls="finder-body">Hide</button>
@@ -745,6 +749,7 @@
   </script>
 </body>
 </html>
+
 
 
 
