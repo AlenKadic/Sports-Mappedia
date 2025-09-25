@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Contact — Sports Mappedia</title>
+  <title>Contact — Sports Mappedia™</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base href="/" />
   <meta http-equiv="Content-Security-Policy" content="
@@ -30,8 +30,8 @@
     .btn:hover { filter:brightness(0.95); }
     footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--border); font-size:12px; color: var(--muted); }
 
-    /* --- Luna image in card (bottom-right) --- */
-    .card--luna { position: relative; padding-right: 140px; min-height: 160px; }
+    /* --- Luna image in card (upper-right) --- */
+    .card--luna { position: relative; padding-right: 160px; min-height: 170px; }
     .card--luna .luna-img {
       position: absolute; right: 14px; top: 14px;
       width: 150px; height: auto; border-radius: 12px;
@@ -41,9 +41,10 @@
     @media (max-width: 420px){
       .card--luna { padding-right: 120px; }
       .card--luna .luna-img { width: 96px; }
-        position: absolute; top: 34px;
-
     }
+
+    /* tiny helper for the ™ mark */
+    .tm { font-size:.65em; vertical-align:super; margin-left:2px; opacity:.9; }
   </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
     <div class="topbar">
       <div class="brand">
         <img src="sports-mappedia-logo.png" alt="" />
-        <span>Sports Mappedia</span>
+        <span>Sports Mappedia<span class="tm" aria-hidden="true">™</span></span>
       </div>
       <div class="back"><a href="/">← Back to map</a></div>
     </div>
@@ -67,16 +68,16 @@
     <!-- Luna card with image -->
     <div class="card card--luna">
       <div class="label">Luna's mail</div>
-      <p>You can also contact Luna about her guidance through the Sports Mappedia database.</p>
+      <p>You can also contact Luna about her guidance through the Sports Mappedia<span class="tm" aria-hidden="true">™</span> database.</p>
       <p>Don't forget to attach some treats. 🦴</p>
       <p><a class="btn" href="mailto:luna@sportsmappedia.com">luna@sportsmappedia.com</a></p>
 
       <!-- Place luna.png in your repo root -->
-      <img class="luna-img" src="luna.png" alt="Luna the Sports Mappedia" loading="lazy" />
+      <img class="luna-img" src="luna.png" alt="Luna the Sports Mappedia<span class="tm" aria-hidden="true">™</span>" loading="lazy" />
     </div>
 
     <footer>
-      © 2025 Sports Mappedia — Unofficial fan-created project.
+      © 2025 Sports Mappedia<span class="tm" aria-hidden="true">™</span> — Unofficial fan-created project.
     </footer>
   </div>
 </body>
