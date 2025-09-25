@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Privacy Policy — Sports Mappedia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/" />
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0 auto; padding: 24px; max-width: 860px;
+      font: 14px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height: 1.6; color: #111827; background: #fff;
+    }
+    h1, h2 { line-height: 1.25; color: #0f172a; }
+    h1 { font-size: 26px; margin: 0 0 12px; }
+    h2 { font-size: 18px; margin: 24px 0 8px; }
+    p, li { margin: 8px 0; }
+    .muted { color: #6b7280; }
+    a { color: #0b5fff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { margin: 12px 0 24px; }
+    nav a { margin-right: 12px; }
+    .card { padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
+    footer { margin-top: 36px; font-size: 12px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Privacy Policy</h1>
+    <p class="muted">Last updated: 25 Sep 2025</p>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/policies.html">Policy documents</a>
+      <a href="/terms.html">Terms of Use</a>
+      <a href="/cookies.html">Cookie & Local Storage Policy</a>
+    </nav>
+    <div class="card">
+      <strong>Who we are.</strong> Sports Mappedia is a volunteer-run project (the “Sports Mappedia Volunteers”).
+      If we later operate through a company or another legal entity, references to “we/us” will include that successor.
+      Contact us at <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a>.
+    </div>
+  </header>
+
+  <section>
+    <h2>What we (currently) collect</h2>
+    <ul>
+      <li><strong>Pseudonymous client ID (“cid”)</strong> — generated and stored in your browser’s localStorage to help enforce
+          per-client rate limits and protect our API budget. We don’t know who you are from this alone.<br>
+          <em>Retention:</em> stored in your browser until you clear it. We do not persist cid in our sheet/database;
+          it is only used transiently (about 60 seconds) in memory to enforce per-minute limits.</li>
+
+      <li><strong>Usage counter (aggregate only)</strong> — our Google Apps Script updates a monthly counter
+          (month, count, blocked flag, last alert time). No personal data is saved there.</li>
+
+      <li><strong>Geolocation (optional)</strong> — only if you click “Locate Me,” your browser shares your current location
+          so we can center the map and drop a marker. We do not store your location.</li>
+
+      <li><strong>Local settings</strong> — small UI preferences saved in your browser (e.g., whether the welcome gate was
+          dismissed for 24h; whether the filter panel is collapsed; auto-hide toggle). These never leave your device unless
+          your browser syncs them.</li>
+
+      <li><strong>Third-party technical data</strong> — our providers (e.g., Mapbox, Google, GitHub Pages, jsDelivr) may process
+          IP address, device/browser info, and events necessary to deliver the map and site securely. See their privacy notices
+          for details.</li>
+
+      <li><strong>Emails you send us</strong> — if you write to <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a>,
+          your message is routed/hosted by our email providers (e.g., Gmail/ImprovMX/Brevo SMTP) for the purpose of responding.
+          We do not build marketing lists.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Why we process data (legal bases)</h2>
+    <ul>
+      <li><strong>Legitimate interests</strong> — site security, abuse prevention, rate limiting/budget protection,
+          service reliability, and troubleshooting.</li>
+      <li><strong>Consent</strong> — geolocation (only after your browser prompts you and you accept).</li>
+    </ul>
+    <p class="muted" style="margin-top:6px;">
+      <em>GDPR specifics:</em> For EU/UK users, our legal bases are <strong>legitimate interests</strong> (GDPR <strong>Art. 6(1)(f)</strong>)
+      for security/abuse prevention and service delivery, and <strong>consent</strong> (GDPR <strong>Art. 6(1)(a)</strong>) for optional geolocation.
+    </p>
+  </section>
+
+  <section>
+    <h2>What we don’t do</h2>
+    <ul>
+      <li>No user accounts.</li>
+      <li>No marketing emails or newsletters.</li>
+      <li>No behavioral/targeted advertising.</li>
+      <li>No sale of personal data.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Sharing</h2>
+    <ul>
+      <li><strong>Service providers/partners</strong>: Mapbox (maps/tiles/directions/search), Google (Apps Script/Sheets),
+          GitHub Pages (hosting), jsDelivr (CDN), and email/forwarding/SMTP providers as needed to receive and send messages.
+          They act as independent controllers or processors of technical data needed to deliver their services.</li>
+      <li><strong>Legal/safety</strong>: where required by law, to respond to lawful requests, or to protect our rights, users, and the public.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>International transfers</h2>
+    <p>
+      Our providers may process data globally. They use measures such as EU Standard Contractual Clauses or other safeguards
+      described in their policies.
+    </p>
+  </section>
+
+  <section>
+    <h2>Retention</h2>
+    <ul>
+      <li><strong>cid & UI preferences</strong>: stored in your browser until you clear site data.</li>
+      <li><strong>In-memory throttle data</strong>: ~60 seconds.</li>
+      <li><strong>Aggregate monthly counter sheet</strong>: kept as needed to manage capacity and audit abuse (no personal data).</li>
+      <li><strong>Emails</strong>: kept as long as reasonably necessary to respond and maintain records of correspondence.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Your rights (EU/UK and similar jurisdictions)</h2>
+    <p>
+      You may have rights to access, rectify, erase, restrict, <strong>portability</strong> (where applicable),
+      or object to processing, and to lodge a complaint with a supervisory authority. Because we don’t maintain
+      user-identifying records for normal browsing, we may ask for reasonable information to locate any data
+      (e.g., your email if you contacted us).
+    </p>
+    <p>
+      To exercise rights, contact: <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a>.
+    </p>
+  </section>
+
+  <section>
+    <h2>Automated decisions & profiling</h2>
+    <p>
+      We do <strong>not</strong> conduct profiling or make automated decisions with legal or similarly significant effects.
+      Temporary request throttling may occur to protect the service but has no lasting effects.
+    </p>
+  </section>
+
+  <section>
+    <h2>Children</h2>
+    <p>
+      The Service is not directed to children under 13. Do not use “Locate Me” without parental consent where required by law.
+    </p>
+  </section>
+
+  <section>
+    <h2>Security</h2>
+    <p>
+      We take reasonable technical and organizational measures appropriate to a small, volunteer project (e.g., least-privilege
+      access to sheets/scripts, limited data collection, HTTPS via GitHub Pages). No internet service is 100% secure.
+    </p>
+  </section>
+
+  <section>
+    <h2>Changes</h2>
+    <p>
+      We’ll update this policy as the Service evolves. See the “Last updated” date at the top.
+    </p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>
+      Privacy questions: <a href="mailto:info@sportsmappedia.com">info@sportsmappedia.com</a>.
+    </p>
+  </section>
+
+  <footer>
+    © Sports Mappedia Volunteers — unofficial fan project.
+  </footer>
+</body>
+</html>
